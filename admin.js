@@ -3,18 +3,43 @@ import { set, remove } from "https://www.gstatic.com/firebasejs/12.15.0/firebase
 
 const PASSWORD = "saransh270912";
 
+// UI Screen Elements
 const loginScreen = document.getElementById("loginScreen");
 const dashboardScreen = document.getElementById("dashboardScreen");
 const password = document.getElementById("password");
 const loginBtn = document.getElementById("loginBtn");
 const error = document.getElementById("error");
 
+// Tab Elements
+const tabResultsBtn = document.getElementById("tabResultsBtn");
+const tabSettingsBtn = document.getElementById("tabSettingsBtn");
+const resultsTab = document.getElementById("resultsTab");
+const settingsTab = document.getElementById("settingsTab");
+
+// Content Elements
 const liveResults = document.getElementById("liveResults");
+const settingsRoleList = document.getElementById("settingsRoleList");
 const newRoleTitle = document.getElementById("newRoleTitle");
 const candA = document.getElementById("candA");
 const candB = document.getElementById("candB");
 const addRoleBtn = document.getElementById("addRoleBtn");
 
+// --- TAB SWITCHING SYSTEM ---
+tabResultsBtn.onclick = () => {
+    tabResultsBtn.classList.add("active");
+    tabSettingsBtn.classList.remove("active");
+    resultsTab.classList.remove("hidden");
+    settingsTab.classList.add("hidden");
+};
+
+tabSettingsBtn.onclick = () => {
+    tabSettingsBtn.classList.add("active");
+    tabResultsBtn.classList.remove("active");
+    settingsTab.classList.remove("hidden");
+    resultsTab.classList.add("hidden");
+};
+
+// --- LOGIN HANDLER ---
 loginBtn.onclick = () => {
     if(password.value === PASSWORD){
         loginScreen.style.display = "none";
@@ -31,7 +56,7 @@ password.addEventListener("keypress",(e)=>{
     }
 });
 
-// Save new role parameters straight to Firebase Realtime Database
+// --- ADD NEW POSITION ---
 addRoleBtn.onclick = async () => {
     const title = newRoleTitle.value.trim();
     const candidateA = candA.value.trim() || "Candidate A";
@@ -44,7 +69,6 @@ addRoleBtn.onclick = async () => {
 
     const key = title.toLowerCase().replace(/[^a-z0-9]/g, "_");
 
-    // Save configurations and clear input forms
     await set(ref(db, `election_config/${key}`), { title, candidateA, candidateB });
     await set(ref(db, `election/${key}/candidateA`), 0);
     await set(ref(db, `election/${key}/candidateB`), 0);
@@ -52,83 +76,81 @@ addRoleBtn.onclick = async () => {
     newRoleTitle.value = "";
     candA.value = "";
     candB.value = "";
+    alert(`Successfully added "${title}"!`);
 };
 
-// 🛠️ Secure Event Listener for the Delete Button
-liveResults.addEventListener("click", async (e) => {
+// --- SECURE EVENT LISTENER FOR MANAGE/DELETE TAB ---
+settingsRoleList.addEventListener("click", async (e) => {
     if (e.target.classList.contains("delete-btn")) {
         const key = e.target.getAttribute("data-key");
         const roleTitle = e.target.getAttribute("data-title");
         
-        if(confirm(`Are you sure you want to delete the "${roleTitle}" position and completely wipe its current vote results?`)) {
+        if(confirm(`Are you sure you want to delete "${roleTitle}"? This clears all its configuration and votes permanently.`)) {
             try {
                 await remove(ref(db, `election_config/${key}`));
                 await remove(ref(db, `election/${key}`));
             } catch (err) {
-                console.error("Error deleting node:", err);
+                console.error("Error deleting:", err);
             }
         }
     }
 });
 
+// --- MAIN DATABASE SYNC LOOP ---
 function loadDashboard(){
-    // Listen directly to the configuration data. If this exists, we render cards!
-    onValue(ref(db, "election_config"), (configSnapshot) => {
-        const configData = configSnapshot.val();
+    onValue(ref(db), (snapshot) => {
+        const rootData = snapshot.val() || {};
+        const configData = rootData.election_config || {};
+        const votesData = rootData.election || {};
         
-        // Listen separately to the live votes data
-        onValue(ref(db, "election"), (votesSnapshot) => {
-            const votesData = votesSnapshot.val() || {};
+        // Clear old items
+        liveResults.innerHTML = "";
+        settingsRoleList.innerHTML = "";
+        
+        const keys = Object.keys(configData);
+        
+        if (keys.length === 0) {
+            liveResults.innerHTML = "<p style='text-align:center; color:#777;'>No active election data available.</p>";
+            settingsRoleList.innerHTML = "<p style='color:#777;'>No positions listed yet.</p>";
+            return;
+        }
+
+        let totalVotes = 0;
+
+        keys.forEach(key => {
+            const role = configData[key];
+            const votes = votesData[key] || {};
             
-            liveResults.innerHTML = "";
-            
-            if (!configData) {
-                liveResults.innerHTML = "<p style='text-align:center; color:#777;'>No positions configured yet. Use the form above to add one!</p>";
-                return;
-            }
+            const a = votes.candidateA || 0;
+            const b = votes.candidateB || 0;
+            totalVotes += a + b;
 
-            let totalVotes = 0;
+            let winner = "Tie";
+            if(a > b) winner = role.candidateA;
+            if(b > a) winner = role.candidateB;
 
-            Object.keys(configData).forEach(key => {
-                const role = configData[key];
-                const votes = votesData[key] || {};
-                
-                const a = votes.candidateA || 0;
-                const b = votes.candidateB || 0;
-                totalVotes += a + b;
-
-                let winner = "Tie";
-                if(a > b) winner = role.candidateA;
-                if(b > a) winner = role.candidateB;
-
-                liveResults.innerHTML += `
-                <div class="card" style="position: relative; margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <h2 style="margin: 0;">${role.title}</h2>
-                        <button class="delete-btn" data-key="${key}" data-title="${role.title}">🗑️ Remove</button>
-                    </div>
-                    <div class="row">
-                        <span>${role.candidateA}</span>
-                        <strong>${a}</strong>
-                    </div>
-                    <div class="row">
-                        <span>${role.candidateB}</span>
-                        <strong>${b}</strong>
-                    </div>
-                    <div class="winner" style="margin-top: 10px;">
-                        🏆 Leading: ${winner}
-                    </div>
-                </div>
-                `;
-            });
-
+            // 1. Generate item for the LIVE RESULTS Tab (Clean, no buttons!)
             liveResults.innerHTML += `
-            <div class="card total">
-                Total Votes Cast
-                <br><br>
-                ${totalVotes}
+            <div class="card">
+                <h2>${role.title}</h2>
+                <div class="row"><span>${role.candidateA}</span><strong>${a}</strong></div>
+                <div class="row"><span>${role.candidateB}</span><strong>${b}</strong></div>
+                <div class="winner">🏆 Leading: ${winner}</div>
+            </div>
+            `;
+
+            // 2. Generate item for the SETTINGS Tab (Safe management panel list)
+            settingsRoleList.innerHTML += `
+            <div class="settings-row">
+                <span class="settings-title">📝 <strong>${role.title}</strong> (${role.candidateA} vs ${role.candidateB})</span>
+                <button class="delete-btn" data-key="${key}" data-title="${role.title}">🗑️ Delete Position</button>
             </div>
             `;
         });
+
+        // Add total display block to results
+        liveResults.innerHTML += `
+        <div class="card total">Total Votes Cast: ${totalVotes}</div>
+        `;
     });
 }
