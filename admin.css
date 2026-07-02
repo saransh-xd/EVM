@@ -1,110 +1,122 @@
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial, Helvetica, sans-serif;
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f7fb;
+    margin: 0;
+    padding: 20px;
+    color: #333;
 }
 
-body{
-    background:#eef4ff;
-    padding:30px;
+h1 {
+    text-align: center;
+    color: #1a237e;
+    margin-bottom: 30px;
 }
 
-h1{
-    text-align:center;
-    color:#1565c0;
-    margin-bottom:30px;
+#loginScreen {
+    max-width: 400px;
+    margin: 100px auto;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    text-align: center;
 }
 
-#dashboard{
-    max-width:900px;
-    margin:auto;
+#loginScreen input {
+    width: 100%;
+    padding: 12px;
+    margin: 15px 0;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
 }
 
-.card{
-    background:white;
-    border-radius:15px;
-    padding:20px;
-    margin-bottom:20px;
-    box-shadow:0 8px 20px rgba(0,0,0,.12);
+#loginScreen button {
+    width: 100%;
+    padding: 12px;
+    background-color: #1a237e;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
 }
 
-.card h2{
-    margin-bottom:15px;
-    color:#1565c0;
+#loginScreen button:hover {
+    background-color: #0d1b60;
 }
 
-.row{
-    display:flex;
-    justify-content:space-between;
-    margin:10px 0;
-    font-size:20px;
+#error {
+    color: #d32f2f;
+    font-weight: bold;
+    margin-top: 10px;
 }
 
-.winner{
-    margin-top:15px;
-    font-weight:bold;
-    color:green;
+.card {
+    background: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
 
-.total{
-    background:#1976d2;
-    color:white;
-    text-align:center;
-    font-size:28px;
-    font-weight:bold;
+.card h2 {
+    margin: 0;
+    color: #1a237e;
+    font-size: 22px;
 }
 
-/* Login Screen */
-
-#loginScreen{
-
-    width:360px;
-
-    margin:80px auto;
-
-    background:white;
-
-    padding:30px;
-
-    border-radius:15px;
-
-    box-shadow:0 10px 25px rgba(0,0,0,.15);
-
-    text-align:center;
-
+.row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 18px;
 }
 
-#password{
-
-    width:100%;
-
-    padding:15px;
-
-    font-size:18px;
-
-    margin:20px 0;
-
-    border:1px solid #ccc;
-
-    border-radius:10px;
-
+.row:last-of-type {
+    border-bottom: none;
 }
 
-#loginBtn{
-
-    width:100%;
-
-    margin-bottom:0;
-
+.winner {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border-radius: 8px;
+    font-weight: bold;
+    text-align: center;
+    font-size: 16px;
 }
 
-#error{
+.total {
+    background: #1a237e;
+    color: white;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    padding: 25px;
+}
 
-    color:red;
+/* 🗑️ Ultra-forced layout fix for the Delete Button */
+.delete-btn {
+    background: #d32f2f !important;
+    color: white !important;
+    border: none !important;
+    padding: 8px 14px !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    font-size: 13px !important;
+    font-weight: bold !important;
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transition: background 0.2s !important;
+}
 
-    margin-top:15px;
-
-    font-weight:bold;
-
+.delete-btn:hover {
+    background: #b71c1c !important;
 }
