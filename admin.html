@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>School Election Dashboard</title>
-    <link rel="stylesheet" href="admin.css?v=3">
+    <link rel="stylesheet" href="admin.css?v=4">
 </head>
 <body>
 
@@ -18,24 +18,36 @@
 <div id="dashboardScreen" style="display:none;">
     <h1>🗳️ School Election Dashboard</h1>
     
+    <div class="tabs">
+        <button id="tabResultsBtn" class="tab-btn active">📈 Live Results</button>
+        <button id="tabSettingsBtn" class="tab-btn">⚙️ Election Settings</button>
+    </div>
+
     <div id="dashboard">
-        <!-- Setup Card for creating roles -->
-        <div class="card creation-card">
-            <h2>⚙️ Create Election Roles & Candidates</h2>
-            <div class="form-container">
-                <input type="text" id="newRoleTitle" placeholder="e.g., Head Boy">
-                <input type="text" id="candA" placeholder="Candidate A Name">
-                <input type="text" id="candB" placeholder="Candidate B Name">
-                <button id="addRoleBtn">Add Position</button>
-            </div>
+        <div id="resultsTab" class="tab-content">
+            <div id="liveResults"></div>
         </div>
 
-        <!-- This MUST exist for the script to attach cards! -->
-        <div id="liveResults"></div>
+        <div id="settingsTab" class="tab-content hidden">
+            <div class="card">
+                <h2>➕ Add New Position</h2>
+                <div class="form-container">
+                    <input type="text" id="newRoleTitle" placeholder="e.g., Head Boy">
+                    <input type="text" id="candA" placeholder="Candidate A Name">
+                    <input type="text" id="candB" placeholder="Candidate B Name">
+                    <button id="addRoleBtn">Add Position</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🗑️ Current Positions Management</h2>
+                <div id="settingsRoleList">
+                    </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- Incremented to v=3 to completely smash the browser cache -->
-<script type="module" src="admin.js?v=3"></script>
+<script type="module" src="admin.js?v=4"></script>
 </body>
 </html>
