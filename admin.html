@@ -1,45 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>School Election Dashboard</title>
-
-<link rel="stylesheet" href="admin.css">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Election Dashboard</title>
+    <link rel="stylesheet" href="admin.css">
 </head>
-
 <body>
 
 <div id="loginScreen">
-
     <h1>🗳️ School Election Dashboard</h1>
-
-    <input
-        id="password"
-        type="password"
-        placeholder="Enter Password"
-    >
-
-    <button id="loginBtn">
-        Login
-    </button>
-
+    <input id="password" type="password" placeholder="Enter Password">
+    <button id="loginBtn">Login</button>
     <p id="error"></p>
-
 </div>
 
 <div id="dashboardScreen" style="display:none;">
-
     <h1>🗳️ School Election Dashboard</h1>
+    
+    <div id="dashboard" style="max-width:900px; margin:auto;">
+        <div class="card" style="border-left: 5px solid #2e7d32;">
+            <h2>⚙️ Create Election Roles & Candidates</h2>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                <input type="text" id="newRoleTitle" placeholder="e.g., Head Boy" style="flex:1; padding:10px; border:1px solid #ccc; border-radius:8px;">
+                <input type="text" id="candA" placeholder="Candidate A Name" style="flex:1; padding:10px; border:1px solid #ccc; border-radius:8px;">
+                <input type="text" id="candB" placeholder="Candidate B Name" style="flex:1; padding:10px; border:1px solid #ccc; border-radius:8px;">
+                <button id="addRoleBtn" style="padding:10px 20px; background:#2e7d32; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">Add Position</button>
+            </div>
+        </div>
 
-    <div id="dashboard"></div>
-
+        <div id="liveResults"></div>
+    </div>
 </div>
 
 <script type="module" src="admin.js"></script>
-
 </body>
 </html>
