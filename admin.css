@@ -1,125 +1,51 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f2f5 !important;
-    margin: 0;
-    padding: 20px;
-    color: #222222 !important;
-}
-
-h1 {
-    text-align: center;
-    color: #111111 !important;
-}
-
-#loginScreen {
-    max-width: 360px;
-    margin: 80px auto;
-    background: #ffffff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    text-align: center;
-}
-
-#loginScreen input {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    box-sizing: border-box;
-}
-
-#loginScreen button {
-    width: 100%;
-    padding: 10px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-#dashboard {
-    max-width: 800px;
-    margin: 0 auto;
-    display: block !important;
-    visibility: visible !important;
-}
-
-.card {
-    background: #ffffff !important;
-    color: #222222 !important;
-    padding: 20px;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    border: 1px solid #cccccc;
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
-
-.form-container {
+/* Tab Navigation styling */
+.tabs {
     display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 15px;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 25px;
 }
 
-.form-container input {
-    flex: 1;
-    min-width: 150px;
-    padding: 8px;
-}
-
-#addRoleBtn {
-    padding: 8px 16px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    cursor: pointer;
+.tab-btn {
+    padding: 12px 24px;
+    font-size: 16px;
     font-weight: bold;
+    cursor: pointer;
+    background: #e0e0e0;
+    border: none;
+    border-radius: 8px;
+    color: #444;
+    transition: all 0.2s;
 }
 
-#liveResults {
-    display: block !important;
-    visibility: visible !important;
-    margin-top: 20px;
+.tab-btn.active {
+    background: #1a237e;
+    color: white;
 }
 
-.row {
+/* Visibility Control Classes */
+.tab-content {
+    display: block;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Settings Row Layout Layout */
+.settings-row {
     display: flex;
     justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid #eeeeee;
-    color: #333333 !important;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
 }
 
-.winner {
-    margin-top: 10px;
-    padding: 8px;
-    background-color: #d4edda;
-    color: #155724;
-    font-weight: bold;
-    text-align: center;
+.settings-row:last-child {
+    border-bottom: none;
 }
 
-.total {
-    background-color: #111111 !important;
-    color: #ffffff !important;
-    text-align: center;
-    font-size: 20px;
-    font-weight: bold;
-}
-
-/* 🗑️ High visibility styles for the delete button */
-.delete-btn {
-    background-color: #dc3545 !important;
-    color: #ffffff !important;
-    border: none !important;
-    padding: 6px 12px !important;
-    border-radius: 4px !important;
-    cursor: pointer !important;
-    font-size: 12px !important;
-    font-weight: bold !important;
-    display: inline-block !important;
-    visibility: visible !important;
+.settings-title {
+    font-size: 16px;
+    color: #333;
 }
