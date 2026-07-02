@@ -16,7 +16,7 @@ const progress = document.getElementById("progress");
 let selectedCandidateKey = "";
 let selectedCandidateName = ""; 
 
-// 🔊 Preload the audio file cleanly
+// 🔊 Preload the sound file explicitly
 const voteAudio = new Audio("vote-confirm.ogg");
 voteAudio.preload = "auto";
 
@@ -62,11 +62,11 @@ voteA.onclick = () => openPopup("candidateA", roles[currentRole].candidateA);
 voteB.onclick = () => openPopup("candidateB", roles[currentRole].candidateB);
 
 function openPopup(key, name){
-    // 💡 Quick activation trigger hack so the browser unblocks the audio element
+    // 🔥 Unlock browser audio engine immediately on candidate selection click
     voteAudio.play().then(() => {
         voteAudio.pause();
         voteAudio.currentTime = 0;
-    }).catch(() => {});
+    }).catch(e => console.log("Audio wake-up pending true user gesture:", e));
 
     selectedCandidateKey = key;
     selectedCandidateName = name;
@@ -82,12 +82,13 @@ confirmBtn.onclick = async () => {
     const voteRef = ref(db, `election/${roles[currentRole].dbKey}/${selectedCandidateKey}`);
 
     try{
+        // 🎵 Fire the audio IMMEDIATELY on confirm button press so it doesn't wait for database lag
+        voteAudio.currentTime = 0;
+        voteAudio.play().catch(e => console.error("Audio playback failed:", e));
+
         await runTransaction(voteRef, (current) => {
             return (current || 0) + 1;
         });
-
-        // 🎵 Play the confirm sound safely
-        voteAudio.play().catch(e => console.error("Audio block error:", e));
 
         startCooldown();
     }catch(error){
