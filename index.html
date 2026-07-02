@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Election</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <h1 id="roleTitle">🗳️ Head Boy Election</h1>
+
+    <p id="progress">Position 1 of 8</p>
+
+    <p>Vote for your candidate</p>
+
+    <button id="candidateA">Candidate A</button>
+
+    <button id="candidateB">Candidate B</button>
+
+    <p id="status">🟢 Ready</p>
+
+</div>
+
+<div id="popup" class="popup hidden">
+
+    <div class="popup-box">
+
+        <h2>Confirm Vote</h2>
+
+        <p id="popupText"></p>
+
+        <div class="popup-buttons">
+
+            <button id="cancelVote" class="cancel">
+                Cancel
+            </button>
+
+            <button id="confirmVote" class="confirm">
+                Confirm
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script type="module" src="app.js"></script>
+
+</body>
+</html>

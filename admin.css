@@ -1,0 +1,110 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+body{
+    background:#eef4ff;
+    padding:30px;
+}
+
+h1{
+    text-align:center;
+    color:#1565c0;
+    margin-bottom:30px;
+}
+
+#dashboard{
+    max-width:900px;
+    margin:auto;
+}
+
+.card{
+    background:white;
+    border-radius:15px;
+    padding:20px;
+    margin-bottom:20px;
+    box-shadow:0 8px 20px rgba(0,0,0,.12);
+}
+
+.card h2{
+    margin-bottom:15px;
+    color:#1565c0;
+}
+
+.row{
+    display:flex;
+    justify-content:space-between;
+    margin:10px 0;
+    font-size:20px;
+}
+
+.winner{
+    margin-top:15px;
+    font-weight:bold;
+    color:green;
+}
+
+.total{
+    background:#1976d2;
+    color:white;
+    text-align:center;
+    font-size:28px;
+    font-weight:bold;
+}
+
+/* Login Screen */
+
+#loginScreen{
+
+    width:360px;
+
+    margin:80px auto;
+
+    background:white;
+
+    padding:30px;
+
+    border-radius:15px;
+
+    box-shadow:0 10px 25px rgba(0,0,0,.15);
+
+    text-align:center;
+
+}
+
+#password{
+
+    width:100%;
+
+    padding:15px;
+
+    font-size:18px;
+
+    margin:20px 0;
+
+    border:1px solid #ccc;
+
+    border-radius:10px;
+
+}
+
+#loginBtn{
+
+    width:100%;
+
+    margin-bottom:0;
+
+}
+
+#error{
+
+    color:red;
+
+    margin-top:15px;
+
+    font-weight:bold;
+
+}
