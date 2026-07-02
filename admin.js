@@ -54,64 +54,72 @@ addRoleBtn.onclick = async () => {
     candB.value = "";
 };
 
-// 🛠️ Global function to remove an entire position from both configurations and results
-window.deleteRole = async (key) => {
-    if(confirm("Are you sure you want to delete this position and completely wipe its current vote results?")) {
-        await remove(ref(db, `election_config/${key}`));
-        await remove(ref(db, `election/${key}`));
+// 🛠️ Secure Event Listener for the Delete Button (No inline global onclick strings needed)
+liveResults.addEventListener("click", async (e) => {
+    if (e.target.classList.contains("delete-btn")) {
+        const key = e.target.getAttribute("data-key");
+        const roleTitle = e.target.getAttribute("data-title");
+        
+        if(confirm(`Are you sure you want to delete the "${roleTitle}" position and completely wipe its current vote results?`)) {
+            try {
+                await remove(ref(db, `election_config/${key}`));
+                await remove(ref(db, `election/${key}`));
+            } catch (err) {
+                console.error("Error deleting node:", err);
+            }
+        }
     }
-};
+});
 
 function loadDashboard(){
-    onValue(ref(db, "election_config"), (configSnapshot) => {
-        const configData = configSnapshot.val() || {};
+    // Combined single listener for the root database path to prevent interface redraw lag
+    onValue(ref(db), (snapshot) => {
+        const rootData = snapshot.val() || {};
+        const configData = rootData.election_config || {};
+        const votesData = rootData.election || {};
         
-        onValue(ref(db, "election"), (votesSnapshot) => {
-            const votesData = votesSnapshot.val() || {};
+        liveResults.innerHTML = "";
+        let totalVotes = 0;
+
+        Object.keys(configData).forEach(key => {
+            const role = configData[key];
+            const votes = votesData[key] || {};
             
-            liveResults.innerHTML = "";
-            let totalVotes = 0;
+            const a = votes.candidateA || 0;
+            const b = votes.candidateB || 0;
+            totalVotes += a + b;
 
-            Object.keys(configData).forEach(key => {
-                const role = configData[key];
-                const votes = votesData[key] || {};
-                
-                const a = votes.candidateA || 0;
-                const b = votes.candidateB || 0;
-                totalVotes += a + b;
-
-                let winner = "Tie";
-                if(a > b) winner = role.candidateA;
-                if(b > a) winner = role.candidateB;
-
-                liveResults.innerHTML += `
-                <div class="card" style="position: relative;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <h2 style="margin: 0;">${role.title}</h2>
-                        <button onclick="deleteRole('${key}')" style="background: #d32f2f; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">🗑️ Remove</button>
-                    </div>
-                    <div class="row">
-                        <span>${role.candidateA}</span>
-                        <strong>${a}</strong>
-                    </div>
-                    <div class="row">
-                        <span>${role.candidateB}</span>
-                        <strong>${b}</strong>
-                    </div>
-                    <div class="winner" style="margin-top: 10px;">
-                        🏆 Leading: ${winner}
-                    </div>
-                </div>
-                `;
-            });
+            let winner = "Tie";
+            if(a > b) winner = role.candidateA;
+            if(b > a) winner = role.candidateB;
 
             liveResults.innerHTML += `
-            <div class="card total">
-                Total Votes Cast
-                <br><br>
-                ${totalVotes}
+            <div class="card" style="position: relative; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h2 style="margin: 0;">${role.title}</h2>
+                    <button class="delete-btn" data-key="${key}" data-title="${role.title}" style="background: #d32f2f; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">🗑️ Remove</button>
+                </div>
+                <div class="row">
+                    <span>${role.candidateA}</span>
+                    <strong>${a}</strong>
+                </div>
+                <div class="row">
+                    <span>${role.candidateB}</span>
+                    <strong>${b}</strong>
+                </div>
+                <div class="winner" style="margin-top: 10px;">
+                    🏆 Leading: ${winner}
+                </div>
             </div>
             `;
         });
+
+        liveResults.innerHTML += `
+        <div class="card total">
+            Total Votes Cast
+            <br><br>
+            ${totalVotes}
+        </div>
+        `;
     });
 }
