@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>School Election Dashboard</title>
-    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="admin.css?v=2">
 </head>
 <body>
 
@@ -19,7 +19,8 @@
     <h1>🗳️ School Election Dashboard</h1>
     
     <div id="dashboard" style="max-width:900px; margin:auto;">
-        <div class="card" style="border-left: 5px solid #2e7d32;">
+        <!-- Setup Card for creating roles -->
+        <div class="card" style="border-left: 5px solid #2e7d32; margin-bottom: 20px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             <h2>⚙️ Create Election Roles & Candidates</h2>
             <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
                 <input type="text" id="newRoleTitle" placeholder="e.g., Head Boy" style="flex:1; padding:10px; border:1px solid #ccc; border-radius:8px;">
@@ -29,10 +30,12 @@
             </div>
         </div>
 
+        <!-- Dynamic Results Live Cards Container -->
         <div id="liveResults"></div>
     </div>
 </div>
 
-<script type="module" src="admin.js"></script>
+<!-- Notice the ?v=2 here to kill the browser cache instantly -->
+<script type="module" src="admin.js?v=2"></script>
 </body>
 </html>
