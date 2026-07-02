@@ -1,5 +1,5 @@
 import { db, ref, onValue } from "./firebase.js";
-import { set } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
+import { set, remove } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
 
 const PASSWORD = "saransh270912";
 
@@ -54,6 +54,14 @@ addRoleBtn.onclick = async () => {
     candB.value = "";
 };
 
+// 🛠️ Global function to remove an entire position from both configurations and results
+window.deleteRole = async (key) => {
+    if(confirm("Are you sure you want to delete this position and completely wipe its current vote results?")) {
+        await remove(ref(db, `election_config/${key}`));
+        await remove(ref(db, `election/${key}`));
+    }
+};
+
 function loadDashboard(){
     onValue(ref(db, "election_config"), (configSnapshot) => {
         const configData = configSnapshot.val() || {};
@@ -77,8 +85,11 @@ function loadDashboard(){
                 if(b > a) winner = role.candidateB;
 
                 liveResults.innerHTML += `
-                <div class="card">
-                    <h2>${role.title}</h2>
+                <div class="card" style="position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h2 style="margin: 0;">${role.title}</h2>
+                        <button onclick="deleteRole('${key}')" style="background: #d32f2f; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">🗑️ Remove</button>
+                    </div>
                     <div class="row">
                         <span>${role.candidateA}</span>
                         <strong>${a}</strong>
@@ -87,7 +98,7 @@ function loadDashboard(){
                         <span>${role.candidateB}</span>
                         <strong>${b}</strong>
                     </div>
-                    <div class="winner">
+                    <div class="winner" style="margin-top: 10px;">
                         🏆 Leading: ${winner}
                     </div>
                 </div>
