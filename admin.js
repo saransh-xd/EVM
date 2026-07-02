@@ -54,7 +54,7 @@ addRoleBtn.onclick = async () => {
     candB.value = "";
 };
 
-// 🛠️ Secure Event Listener for the Delete Button (No inline global onclick strings needed)
+// 🛠️ Secure Event Listener for the Delete Button
 liveResults.addEventListener("click", async (e) => {
     if (e.target.classList.contains("delete-btn")) {
         const key = e.target.getAttribute("data-key");
@@ -72,54 +72,63 @@ liveResults.addEventListener("click", async (e) => {
 });
 
 function loadDashboard(){
-    // Combined single listener for the root database path to prevent interface redraw lag
-    onValue(ref(db), (snapshot) => {
-        const rootData = snapshot.val() || {};
-        const configData = rootData.election_config || {};
-        const votesData = rootData.election || {};
+    // Listen directly to the configuration data. If this exists, we render cards!
+    onValue(ref(db, "election_config"), (configSnapshot) => {
+        const configData = configSnapshot.val();
         
-        liveResults.innerHTML = "";
-        let totalVotes = 0;
-
-        Object.keys(configData).forEach(key => {
-            const role = configData[key];
-            const votes = votesData[key] || {};
+        // Listen separately to the live votes data
+        onValue(ref(db, "election"), (votesSnapshot) => {
+            const votesData = votesSnapshot.val() || {};
             
-            const a = votes.candidateA || 0;
-            const b = votes.candidateB || 0;
-            totalVotes += a + b;
+            liveResults.innerHTML = "";
+            
+            if (!configData) {
+                liveResults.innerHTML = "<p style='text-align:center; color:#777;'>No positions configured yet. Use the form above to add one!</p>";
+                return;
+            }
 
-            let winner = "Tie";
-            if(a > b) winner = role.candidateA;
-            if(b > a) winner = role.candidateB;
+            let totalVotes = 0;
+
+            Object.keys(configData).forEach(key => {
+                const role = configData[key];
+                const votes = votesData[key] || {};
+                
+                const a = votes.candidateA || 0;
+                const b = votes.candidateB || 0;
+                totalVotes += a + b;
+
+                let winner = "Tie";
+                if(a > b) winner = role.candidateA;
+                if(b > a) winner = role.candidateB;
+
+                liveResults.innerHTML += `
+                <div class="card" style="position: relative; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h2 style="margin: 0;">${role.title}</h2>
+                        <button class="delete-btn" data-key="${key}" data-title="${role.title}">🗑️ Remove</button>
+                    </div>
+                    <div class="row">
+                        <span>${role.candidateA}</span>
+                        <strong>${a}</strong>
+                    </div>
+                    <div class="row">
+                        <span>${role.candidateB}</span>
+                        <strong>${b}</strong>
+                    </div>
+                    <div class="winner" style="margin-top: 10px;">
+                        🏆 Leading: ${winner}
+                    </div>
+                </div>
+                `;
+            });
 
             liveResults.innerHTML += `
-            <div class="card" style="position: relative; margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h2 style="margin: 0;">${role.title}</h2>
-                    <button class="delete-btn" data-key="${key}" data-title="${role.title}" style="background: #d32f2f; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">🗑️ Remove</button>
-                </div>
-                <div class="row">
-                    <span>${role.candidateA}</span>
-                    <strong>${a}</strong>
-                </div>
-                <div class="row">
-                    <span>${role.candidateB}</span>
-                    <strong>${b}</strong>
-                </div>
-                <div class="winner" style="margin-top: 10px;">
-                    🏆 Leading: ${winner}
-                </div>
+            <div class="card total">
+                Total Votes Cast
+                <br><br>
+                ${totalVotes}
             </div>
             `;
         });
-
-        liveResults.innerHTML += `
-        <div class="card total">
-            Total Votes Cast
-            <br><br>
-            ${totalVotes}
-        </div>
-        `;
     });
 }
