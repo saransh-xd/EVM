@@ -16,14 +16,14 @@ const progress = document.getElementById("progress");
 let selectedCandidateKey = "";
 let selectedCandidateName = ""; 
 
+// 🔊 Initialize the confirmation audio file
+const voteAudio = new Audio("vote-confirm.ogg");
+
 // 1. Listen to database changes dynamically
-onValue(ref(db), (snapshot) => {
-    const rootData = snapshot.val() || {};
+onValue(ref(db, "election_config"), (snapshot) => {
+    const data = snapshot.val();
     
-    // Check if the admin config exists, otherwise check your main election path
-    const configData = rootData.election_config || rootData.election;
-    
-    if (!configData) {
+    if(!data) {
         roleTitle.textContent = "❌ No active elections configured.";
         progress.textContent = "Position 0 of 0";
         voteA.style.display = "none";
@@ -34,24 +34,12 @@ onValue(ref(db), (snapshot) => {
     voteA.style.display = "block";
     voteB.style.display = "block";
 
-    // Transform the data whether it uses custom candidate names or the old default ones
-    roles = Object.keys(configData).map(key => {
-        // Fallback checks to prevent empty buttons if paths are legacy formatted
-        const title = configData[key].title || key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-        const candidateA = configData[key].candidateA !== undefined && typeof configData[key].candidateA !== 'number' 
-            ? configData[key].candidateA 
-            : "Candidate A";
-        const candidateB = configData[key].candidateB !== undefined && typeof configData[key].candidateB !== 'number' 
-            ? configData[key].candidateB 
-            : "Candidate B";
-
-        return {
-            dbKey: key,
-            title: title,
-            candidateA: candidateA,
-            candidateB: candidateB
-        };
-    });
+    roles = Object.keys(data).map(key => ({
+        dbKey: key,
+        title: data[key].title,
+        candidateA: data[key].candidateA,
+        candidateB: data[key].candidateB
+    }));
 
     setupVotingUI();
 });
@@ -90,6 +78,10 @@ confirmBtn.onclick = async () => {
         await runTransaction(voteRef, (current) => {
             return (current || 0) + 1;
         });
+
+        // 🎵 Play the confirm sound right here!
+        voteAudio.play().catch(e => console.log("Audio playback pending user interaction context:", e));
+
         startCooldown();
     }catch(error){
         console.error(error);
