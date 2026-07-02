@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>School Election Dashboard</title>
-    <link rel="stylesheet" href="admin.css?v=2">
+    <link rel="stylesheet" href="admin.css?v=3">
 </head>
 <body>
 
@@ -18,24 +18,24 @@
 <div id="dashboardScreen" style="display:none;">
     <h1>🗳️ School Election Dashboard</h1>
     
-    <div id="dashboard" style="max-width:900px; margin:auto;">
+    <div id="dashboard">
         <!-- Setup Card for creating roles -->
-        <div class="card" style="border-left: 5px solid #2e7d32; margin-bottom: 20px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <div class="card creation-card">
             <h2>⚙️ Create Election Roles & Candidates</h2>
-            <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
-                <input type="text" id="newRoleTitle" placeholder="e.g., Head Boy" style="flex:1; padding:10px; border:1px solid #ccc; border-radius:8px;">
-                <input type="text" id="candA" placeholder="Candidate A Name" style="flex:1; padding:10px; border:1px solid #ccc; border-radius:8px;">
-                <input type="text" id="candB" placeholder="Candidate B Name" style="flex:1; padding:10px; border:1px solid #ccc; border-radius:8px;">
-                <button id="addRoleBtn" style="padding:10px 20px; background:#2e7d32; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">Add Position</button>
+            <div class="form-container">
+                <input type="text" id="newRoleTitle" placeholder="e.g., Head Boy">
+                <input type="text" id="candA" placeholder="Candidate A Name">
+                <input type="text" id="candB" placeholder="Candidate B Name">
+                <button id="addRoleBtn">Add Position</button>
             </div>
         </div>
 
-        <!-- Dynamic Results Live Cards Container -->
+        <!-- This MUST exist for the script to attach cards! -->
         <div id="liveResults"></div>
     </div>
 </div>
 
-<!-- Notice the ?v=2 here to kill the browser cache instantly -->
-<script type="module" src="admin.js?v=2"></script>
+<!-- Incremented to v=3 to completely smash the browser cache -->
+<script type="module" src="admin.js?v=3"></script>
 </body>
 </html>
