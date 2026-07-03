@@ -23,6 +23,17 @@ const newRoleTitle = document.getElementById("newRoleTitle");
 const candA = document.getElementById("candA");
 const candB = document.getElementById("candB");
 const addRoleBtn = document.getElementById("addRoleBtn");
+const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+
+// --- DOWNLOAD PDF CLICK CONTROLLER ---
+downloadPdfBtn.onclick = () => {
+    // Dynamically sets the printed file name to include current date parameters cleanly
+    const dateStr = new Date().toLocaleDateString().replace(/\//g, '-');
+    document.title = `Election_Final_Results_${dateStr}`;
+    
+    // Executes browser native system window layer print layout transformation
+    window.print();
+};
 
 // --- TAB ROUTING CONTROLLERS ---
 tabResultsBtn.onclick = () => {
@@ -79,9 +90,8 @@ addRoleBtn.onclick = async () => {
     alert(`Added "${title}" successfully!`);
 };
 
-// --- ENGINE: CAPTURE EDIT & REMOVE ACTIONS (Setup Tab Listeners) ---
+// --- ENGINE: CAPTURE EDIT & REMOVE ACTIONS ---
 setupRoleList.addEventListener("click", async (e) => {
-    // Action 1: Handle Delete Position Button Click
     if (e.target.classList.contains("delete-btn")) {
         const key = e.target.getAttribute("data-key");
         const roleTitle = e.target.getAttribute("data-title");
@@ -96,7 +106,6 @@ setupRoleList.addEventListener("click", async (e) => {
         }
     }
 
-    // Action 2: Handle Save Modified Names Button Click
     if (e.target.classList.contains("save-btn")) {
         const key = e.target.getAttribute("data-key");
         const inputA = document.getElementById(`editA_${key}`);
@@ -106,7 +115,6 @@ setupRoleList.addEventListener("click", async (e) => {
         const newB = inputB.value.trim() || "Candidate B";
 
         try {
-            // Update configuration node with brand new names instantly without resetting core vote tallies!
             await update(ref(db, `election_config/${key}`), {
                 candidateA: newA,
                 candidateB: newB
