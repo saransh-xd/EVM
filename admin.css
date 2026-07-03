@@ -109,6 +109,34 @@ h1 {
     padding-bottom: 8px;
 }
 
+/* Special styling wrapper for the mass reset zone */
+.danger-card {
+    border: 2px dashed #dc3545 !important;
+    background: #fff8f8 !important;
+}
+
+.danger-card h2 {
+    color: #dc3545 !important;
+    border-bottom: 2px solid #fde8e8 !important;
+}
+
+#massResetBtn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100%;
+}
+
+#massResetBtn:hover {
+    background-color: #bd2130;
+}
+
 .form-container {
     display: flex;
     gap: 10px;
