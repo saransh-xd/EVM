@@ -1,7 +1,7 @@
 import { db, ref, onValue } from "./firebase.js";
 import { set, remove, update } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
 
-const PASSWORD = "saransh270912";
+const PASSWORD = "GOJOISTHEBEST";
 
 // UI Screens
 const loginScreen = document.getElementById("loginScreen");
