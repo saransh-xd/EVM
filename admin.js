@@ -24,15 +24,47 @@ const candA = document.getElementById("candA");
 const candB = document.getElementById("candB");
 const addRoleBtn = document.getElementById("addRoleBtn");
 const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+const massResetBtn = document.getElementById("massResetBtn");
+
+// Track current keys in local memory so the reset trigger knows exactly what nodes exist
+let currentActiveKeys = [];
 
 // --- DOWNLOAD PDF CLICK CONTROLLER ---
 downloadPdfBtn.onclick = () => {
-    // Dynamically sets the printed file name to include current date parameters cleanly
     const dateStr = new Date().toLocaleDateString().replace(/\//g, '-');
     document.title = `Election_Final_Results_${dateStr}`;
-    
-    // Executes browser native system window layer print layout transformation
     window.print();
+};
+
+// --- MASS RESET BUTTON CLICK CONTROLLER ---
+massResetBtn.onclick = async () => {
+    if (currentActiveKeys.length === 0) {
+        alert("There are no active election positions to reset!");
+        return;
+    }
+
+    // Double Confirmation system to prevent accidental wipes
+    const firstConfirm = confirm("⚠️ CRITICAL WARNING:\n\nAre you sure you want to RESET ALL VOTE COUNTS back to 0?\nThis action cannot be undone.");
+    
+    if (firstConfirm) {
+        const secondConfirm = confirm("🛑 FINAL VERIFICATION:\n\nAre you absolutely sure? All live voting progress will be lost immediately.");
+        
+        if (secondConfirm) {
+            try {
+                // Loop through every single active position key and update its vote counters to 0
+                for (const key of currentActiveKeys) {
+                    await set(ref(db, `election/${key}`), {
+                        candidateA: 0,
+                        candidateB: 0
+                    });
+                }
+                alert("🎉 Success! All vote counters have been wiped back to 0.");
+            } catch (err) {
+                console.error("Mass reset failure:", err);
+                alert("An error occurred while resetting the votes.");
+            }
+        }
+    }
 };
 
 // --- TAB ROUTING CONTROLLERS ---
@@ -136,9 +168,10 @@ function loadDashboard(){
         liveResults.innerHTML = "";
         setupRoleList.innerHTML = "";
         
-        const keys = Object.keys(configData);
+        // Save the dynamic keys list globally for our Mass Reset handler to read
+        currentActiveKeys = Object.keys(configData);
         
-        if (keys.length === 0) {
+        if (currentActiveKeys.length === 0) {
             liveResults.innerHTML = "<p style='text-align:center; color:#777; padding:20px;'>No active positions configured. Go to the Setup tab to add your first position!</p>";
             setupRoleList.innerHTML = "<p style='color:#777; padding:10px;'>No configurations tracked yet.</p>";
             return;
@@ -146,7 +179,7 @@ function loadDashboard(){
 
         let totalVotes = 0;
 
-        keys.forEach(key => {
+        currentActiveKeys.forEach(key => {
             const role = configData[key];
             const votes = votesData[key] || {};
             
