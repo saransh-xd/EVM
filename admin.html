@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>School Election Dashboard</title>
-    <link rel="stylesheet" href="admin.css?v=5">
+    <link rel="stylesheet" href="admin.css?v=6">
 </head>
 <body>
 
@@ -16,10 +16,10 @@
 </div>
 
 <div id="dashboardScreen" style="display:none;">
-    <h1>🗳️ School Election Dashboard</h1>
+    <h1 class="no-print">🗳️ School Election Dashboard</h1>
     
-    <!-- 🗂️ Theme-Matched Tab Navigation -->
-    <div class="tabs">
+    <!-- 🗂️ Tab Navigation Buttons (Hidden during printing) -->
+    <div class="tabs no-print">
         <button id="tabResultsBtn" class="tab-btn active">📈 Dashboard</button>
         <button id="tabSettingsBtn" class="tab-btn">⚙️ Setup</button>
     </div>
@@ -27,12 +27,22 @@
     <div id="dashboard">
         <!-- 📈 TAB 1: DASHBOARD (Live Results Only) -->
         <div id="resultsTab" class="tab-content">
+            <!-- 📥 Download PDF Action Block -->
+            <div style="text-align: right; margin-bottom: 15px;" class="no-print">
+                <button id="downloadPdfBtn" style="background-color: #1a237e; color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 14px;">📥 Download Final Results (PDF)</button>
+            </div>
+            
+            <!-- Dynamic Print Header (Invisible on screen, only appears in the PDF) -->
+            <div class="print-only-header">
+                <h1 style="margin: 0; color: #1a237e;">Official School Election Report</h1>
+                <p style="margin: 5px 0 25px 0; color: #555; border-bottom: 2px solid #1a237e; padding-bottom: 10px; font-weight: bold;">Final Certified Election Results Tally</p>
+            </div>
+
             <div id="liveResults"></div>
         </div>
 
         <!-- ⚙️ TAB 2: SETUP (Management, Editing & Creation) -->
         <div id="settingsTab" class="tab-content hidden">
-            <!-- Part A: Add Form -->
             <div class="card">
                 <h2>➕ Add New Election Position</h2>
                 <div class="form-container">
@@ -43,18 +53,15 @@
                 </div>
             </div>
 
-            <!-- Part B: Inline Editing & Deleting Section -->
             <div class="card">
                 <h2>⚙️ Manage Current Positions & Candidates</h2>
                 <p style="color: #666; font-size: 14px; margin-bottom: 15px;">You can update candidate names instantly by typing over them and clicking "Save Names".</p>
-                <div id="setupRoleList">
-                    <!-- Dynamic editing loops build here safely -->
-                </div>
+                <div id="setupRoleList"></div>
             </div>
         </div>
     </div>
 </div>
 
-<script type="module" src="admin.js?v=5"></script>
+<script type="module" src="admin.js?v=6"></script>
 </body>
 </html>
