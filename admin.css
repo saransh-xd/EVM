@@ -1,223 +1,72 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f2f5 !important;
-    margin: 0;
-    padding: 20px;
-    color: #222222 !important;
+/* --- 📄 ADVANCED PDF PRINT ENGINE RULES --- */
+.print-only-header {
+    display: none;
 }
 
-h1 {
-    text-align: center;
-    color: #1a237e !important;
-    margin-bottom: 20px;
-}
-
-#loginScreen {
-    max-width: 360px;
-    margin: 80px auto;
-    background: #ffffff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    text-align: center;
-}
-
-#loginScreen input {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    box-sizing: border-box;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-}
-
-#loginScreen button {
-    width: 100%;
-    padding: 10px;
-    background-color: #1a237e;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-#dashboard {
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-/* --- Navigation Tab Styles --- */
-.tabs {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 25px;
-}
-
-.tab-btn {
-    padding: 12px 30px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    background: #e0e0e0;
-    border: none;
-    border-radius: 8px;
-    color: #555;
-    transition: all 0.2s ease;
-}
-
-.tab-btn.active {
-    background: #1a237e !important;
-    color: white !important;
-    box-shadow: 0 4px 6px rgba(26,35,126,0.2);
-}
-
-.tab-content {
-    display: block;
-}
-
-.hidden {
-    display: none !important;
-}
-
-/* --- Content Card Styles --- */
-.card {
-    background: #ffffff !important;
-    color: #222222 !important;
-    padding: 20px;
-    margin-bottom: 25px;
-    border-radius: 12px;
-    border: 1px solid #dddddd;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.04);
-}
-
-.card h2 {
-    margin-top: 0;
-    color: #1a237e;
-    border-bottom: 2px solid #f0f2f5;
-    padding-bottom: 8px;
-}
-
-.form-container {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 15px;
-}
-
-.form-container input {
-    flex: 1;
-    min-width: 160px;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #cccccc;
-}
-
-#addRoleBtn {
-    padding: 10px 20px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.row {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px solid #eeeeee;
-    font-size: 18px;
-}
-
-.winner {
-    margin-top: 12px;
-    padding: 10px;
-    background-color: #d4edda;
-    color: #155724;
-    font-weight: bold;
-    text-align: center;
-    border-radius: 6px;
-}
-
-.total {
-    background-color: #1a237e !important;
-    color: #ffffff !important;
-    text-align: center;
-    font-size: 22px;
-    font-weight: bold;
-    padding: 20px;
-}
-
-/* --- Setup Interactive Grid Rows --- */
-.setup-management-item {
-    background: #fafafa;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 15px;
-}
-
-.setup-header-line {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px dashed #ddd;
-    padding-bottom: 8px;
-    margin-bottom: 12px;
-}
-
-.setup-header-line h3 {
-    margin: 0;
-    color: #333;
-}
-
-.edit-inputs-row {
-    display: flex;
-    gap: 12px;
-    align-items: flex-end;
-    flex-wrap: wrap;
-}
-
-.input-block {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-width: 140px;
-}
-
-.input-block label {
-    font-size: 12px;
-    font-weight: bold;
-    color: #666;
-    margin-bottom: 4px;
-}
-
-.input-block input {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-.save-btn {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 9px 15px;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.delete-btn {
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 12px;
+@media print {
+    /* Completely hide interactive items, headers, setup panels, and backgrounds */
+    .no-print, .tabs, #loginScreen, #settingsTab, button, .card h2::after {
+        display: none !important;
+    }
+    
+    body {
+        background-color: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 14pt;
+        color: #000000 !important;
+    }
+    
+    #dashboard {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    /* Make results container fully layout across flowing page boundaries */
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #1a237e !important;
+        background: #ffffff !important;
+        page-break-inside: avoid !important;
+        margin-bottom: 25px !important;
+        padding: 15px !important;
+    }
+    
+    .card h2 {
+        font-size: 18pt !important;
+        color: #1a237e !important;
+        margin-top: 0 !important;
+        border-bottom: 1px solid #ddd !important;
+    }
+    
+    .row {
+        font-size: 14pt !important;
+        border-bottom: 1px dashed #ccc !important;
+        padding: 8px 0 !important;
+    }
+    
+    .winner {
+        background-color: #f1f8e9 !important;
+        color: #2e7d32 !important;
+        border: 1px solid #c8e6c9 !important;
+        font-size: 13pt !important;
+        padding: 6px !important;
+    }
+    
+    .total {
+        background-color: #1a237e !important;
+        color: #ffffff !important;
+        font-size: 18pt !important;
+        text-align: center !important;
+        margin-top: 30px !important;
+    }
+    
+    /* Display report brand layout */
+    .print-only-header {
+        display: block !important;
+        text-align: center !important;
+        margin-bottom: 20px !important;
+    }
 }
