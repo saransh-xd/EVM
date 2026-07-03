@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>School Election Dashboard</title>
-    <link rel="stylesheet" href="admin.css?v=4">
+    <link rel="stylesheet" href="admin.css?v=5">
 </head>
 <body>
 
@@ -18,19 +18,23 @@
 <div id="dashboardScreen" style="display:none;">
     <h1>🗳️ School Election Dashboard</h1>
     
+    <!-- 🗂️ Theme-Matched Tab Navigation -->
     <div class="tabs">
-        <button id="tabResultsBtn" class="tab-btn active">📈 Live Results</button>
-        <button id="tabSettingsBtn" class="tab-btn">⚙️ Election Settings</button>
+        <button id="tabResultsBtn" class="tab-btn active">📈 Dashboard</button>
+        <button id="tabSettingsBtn" class="tab-btn">⚙️ Setup</button>
     </div>
 
     <div id="dashboard">
+        <!-- 📈 TAB 1: DASHBOARD (Live Results Only) -->
         <div id="resultsTab" class="tab-content">
             <div id="liveResults"></div>
         </div>
 
+        <!-- ⚙️ TAB 2: SETUP (Management, Editing & Creation) -->
         <div id="settingsTab" class="tab-content hidden">
+            <!-- Part A: Add Form -->
             <div class="card">
-                <h2>➕ Add New Position</h2>
+                <h2>➕ Add New Election Position</h2>
                 <div class="form-container">
                     <input type="text" id="newRoleTitle" placeholder="e.g., Head Boy">
                     <input type="text" id="candA" placeholder="Candidate A Name">
@@ -39,15 +43,18 @@
                 </div>
             </div>
 
+            <!-- Part B: Inline Editing & Deleting Section -->
             <div class="card">
-                <h2>🗑️ Current Positions Management</h2>
-                <div id="settingsRoleList">
-                    </div>
+                <h2>⚙️ Manage Current Positions & Candidates</h2>
+                <p style="color: #666; font-size: 14px; margin-bottom: 15px;">You can update candidate names instantly by typing over them and clicking "Save Names".</p>
+                <div id="setupRoleList">
+                    <!-- Dynamic editing loops build here safely -->
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<script type="module" src="admin.js?v=4"></script>
+<script type="module" src="admin.js?v=5"></script>
 </body>
 </html>
