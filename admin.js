@@ -1,30 +1,30 @@
 import { db, ref, onValue } from "./firebase.js";
-import { set, remove } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
+import { set, remove, update } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
 
 const PASSWORD = "saransh270912";
 
-// UI Screen Elements
+// UI Screens
 const loginScreen = document.getElementById("loginScreen");
 const dashboardScreen = document.getElementById("dashboardScreen");
 const password = document.getElementById("password");
 const loginBtn = document.getElementById("loginBtn");
 const error = document.getElementById("error");
 
-// Tab Elements
+// Navigation Tabs
 const tabResultsBtn = document.getElementById("tabResultsBtn");
 const tabSettingsBtn = document.getElementById("tabSettingsBtn");
 const resultsTab = document.getElementById("resultsTab");
 const settingsTab = document.getElementById("settingsTab");
 
-// Content Elements
+// Content Views
 const liveResults = document.getElementById("liveResults");
-const settingsRoleList = document.getElementById("settingsRoleList");
+const setupRoleList = document.getElementById("setupRoleList");
 const newRoleTitle = document.getElementById("newRoleTitle");
 const candA = document.getElementById("candA");
 const candB = document.getElementById("candB");
 const addRoleBtn = document.getElementById("addRoleBtn");
 
-// --- TAB SWITCHING SYSTEM ---
+// --- TAB ROUTING CONTROLLERS ---
 tabResultsBtn.onclick = () => {
     tabResultsBtn.classList.add("active");
     tabSettingsBtn.classList.remove("active");
@@ -39,7 +39,7 @@ tabSettingsBtn.onclick = () => {
     resultsTab.classList.add("hidden");
 };
 
-// --- LOGIN HANDLER ---
+// --- SECURITY LOGIN GATE ---
 loginBtn.onclick = () => {
     if(password.value === PASSWORD){
         loginScreen.style.display = "none";
@@ -56,7 +56,7 @@ password.addEventListener("keypress",(e)=>{
     }
 });
 
-// --- ADD NEW POSITION ---
+// --- ENGINE: WRITE NEW POSITION ---
 addRoleBtn.onclick = async () => {
     const title = newRoleTitle.value.trim();
     const candidateA = candA.value.trim() || "Candidate A";
@@ -76,42 +76,63 @@ addRoleBtn.onclick = async () => {
     newRoleTitle.value = "";
     candA.value = "";
     candB.value = "";
-    alert(`Successfully added "${title}"!`);
+    alert(`Added "${title}" successfully!`);
 };
 
-// --- SECURE EVENT LISTENER FOR MANAGE/DELETE TAB ---
-settingsRoleList.addEventListener("click", async (e) => {
+// --- ENGINE: CAPTURE EDIT & REMOVE ACTIONS (Setup Tab Listeners) ---
+setupRoleList.addEventListener("click", async (e) => {
+    // Action 1: Handle Delete Position Button Click
     if (e.target.classList.contains("delete-btn")) {
         const key = e.target.getAttribute("data-key");
         const roleTitle = e.target.getAttribute("data-title");
         
-        if(confirm(`Are you sure you want to delete "${roleTitle}"? This clears all its configuration and votes permanently.`)) {
+        if(confirm(`Are you absolutely sure you want to delete "${roleTitle}"? This completely wipes its layout and votes permanently.`)) {
             try {
                 await remove(ref(db, `election_config/${key}`));
                 await remove(ref(db, `election/${key}`));
             } catch (err) {
-                console.error("Error deleting:", err);
+                console.error("Delete failure:", err);
             }
+        }
+    }
+
+    // Action 2: Handle Save Modified Names Button Click
+    if (e.target.classList.contains("save-btn")) {
+        const key = e.target.getAttribute("data-key");
+        const inputA = document.getElementById(`editA_${key}`);
+        const inputB = document.getElementById(`editB_${key}`);
+        
+        const newA = inputA.value.trim() || "Candidate A";
+        const newB = inputB.value.trim() || "Candidate B";
+
+        try {
+            // Update configuration node with brand new names instantly without resetting core vote tallies!
+            await update(ref(db, `election_config/${key}`), {
+                candidateA: newA,
+                candidateB: newB
+            });
+            alert("Candidate names updated successfully!");
+        } catch (err) {
+            console.error("Update failure:", err);
         }
     }
 });
 
-// --- MAIN DATABASE SYNC LOOP ---
+// --- CORE REALTIME SYNC HANDLER ---
 function loadDashboard(){
     onValue(ref(db), (snapshot) => {
         const rootData = snapshot.val() || {};
         const configData = rootData.election_config || {};
         const votesData = rootData.election || {};
         
-        // Clear old items
         liveResults.innerHTML = "";
-        settingsRoleList.innerHTML = "";
+        setupRoleList.innerHTML = "";
         
         const keys = Object.keys(configData);
         
         if (keys.length === 0) {
-            liveResults.innerHTML = "<p style='text-align:center; color:#777;'>No active election data available.</p>";
-            settingsRoleList.innerHTML = "<p style='color:#777;'>No positions listed yet.</p>";
+            liveResults.innerHTML = "<p style='text-align:center; color:#777; padding:20px;'>No active positions configured. Go to the Setup tab to add your first position!</p>";
+            setupRoleList.innerHTML = "<p style='color:#777; padding:10px;'>No configurations tracked yet.</p>";
             return;
         }
 
@@ -129,7 +150,7 @@ function loadDashboard(){
             if(a > b) winner = role.candidateA;
             if(b > a) winner = role.candidateB;
 
-            // 1. Generate item for the LIVE RESULTS Tab (Clean, no buttons!)
+            // Render Tab 1 View: Live Clean Results Dashboard
             liveResults.innerHTML += `
             <div class="card">
                 <h2>${role.title}</h2>
@@ -139,16 +160,29 @@ function loadDashboard(){
             </div>
             `;
 
-            // 2. Generate item for the SETTINGS Tab (Safe management panel list)
-            settingsRoleList.innerHTML += `
-            <div class="settings-row">
-                <span class="settings-title">📝 <strong>${role.title}</strong> (${role.candidateA} vs ${role.candidateB})</span>
-                <button class="delete-btn" data-key="${key}" data-title="${role.title}">🗑️ Delete Position</button>
+            // Render Tab 2 View: Interactive Setup Management Blocks
+            setupRoleList.innerHTML += `
+            <div class="setup-management-item">
+                <div class="setup-header-line">
+                    <h3>📋 ${role.title}</h3>
+                    <button class="delete-btn" data-key="${key}" data-title="${role.title}">🗑️ Delete Role</button>
+                </div>
+                <div class="edit-inputs-row">
+                    <div class="input-block">
+                        <label>Candidate A Name:</label>
+                        <input type="text" id="editA_${key}" value="${role.candidateA}">
+                    </div>
+                    <div class="input-block">
+                        <label>Candidate B Name:</label>
+                        <input type="text" id="editB_${key}" value="${role.candidateB}">
+                    </div>
+                    <button class="save-btn" data-key="${key}">💾 Save Names</button>
+                </div>
             </div>
             `;
         });
 
-        // Add total display block to results
+        // Appends the absolute sum card at the bottom of Dashboard view
         liveResults.innerHTML += `
         <div class="card total">Total Votes Cast: ${totalVotes}</div>
         `;
