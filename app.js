@@ -123,10 +123,25 @@ function renderCurrentRole() {
     `;
 }
 
-// --- 4. COOLDOWN COUNTDOWN SCREEN FUNCTION ---
+// --- 4. COOLDOWN COUNTDOWN SCREEN WITH NATIVE AUDIO PROMPT ---
 function triggerVoteCooldown() {
     isCooldownActive = true;
     let secondsLeft = 3;
+
+    // 🔊 AUDIO NOTIFICATION SYSTEM
+    try {
+        // Cancel any pending speech queues to prevent overlap stutter
+        window.speechSynthesis.cancel();
+        
+        const announcement = new SpeechSynthesisUtterance("Vote counted, please continue on next vote.");
+        announcement.rate = 1.0;  // Normal speaking pace
+        announcement.pitch = 1.0; // Standard voice timbre
+        announcement.lang = 'en-US'; 
+        
+        window.speechSynthesis.speak(announcement);
+    } catch (audioError) {
+        console.warn("Speech engine context could not initialize:", audioError);
+    }
 
     const runCountdown = () => {
         if (secondsLeft <= 0) {
