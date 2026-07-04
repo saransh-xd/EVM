@@ -8,17 +8,20 @@
     <style>
         .admin-box { background: #fff; padding: 25px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid #eef0f5; }
         .admin-input { width: 100%; padding: 12px; margin: 10px 0 20px 0; border: 2px solid #e0e4ec; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
-        .inline-edit-input { padding: 6px 10px; border: 1px solid #ccd2e0; border-radius: 6px; font-size: 14px; width: 140px; margin-right: 5px; }
+        .inline-edit-input { padding: 8px 12px; border: 1px solid #ccd2e0; border-radius: 6px; font-size: 14px; width: 150px; box-sizing: border-box; }
         .admin-btn { background-color: #1a237e; color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; }
         .admin-btn:hover { background-color: #0d1442; }
         .toggle-status-btn { background-color: #28a745; color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; }
         .toggle-status-btn.closed { background-color: #dc3545; }
-        .role-list-item { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #f4f6f9; }
-        .role-list-item:last-child { border-bottom: none; }
-        .delete-btn { background-color: #dc3545; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; }
-        .save-inline-btn { background-color: #007bff; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; }
         
-        /* Dashboard layout elements */
+        /* Layout Grid and List Styling */
+        .role-list-item { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #f4f6f9; gap: 20px; }
+        .role-list-item:last-child { border-bottom: none; }
+        
+        /* 🎯 UNIFIED BUTTON DIMENSIONS FOR PERFECT SYMMETRY */
+        .save-inline-btn { background-color: #007bff; color: white; border: none; padding: 10px 16px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: 38px; box-sizing: border-box; white-space: nowrap; }
+        .delete-btn { background-color: #dc3545; color: white; border: none; padding: 10px 16px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: 38px; box-sizing: border-box; white-space: nowrap; }
+        
         .admin-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eef0f5; padding-bottom: 10px; }
         .tab-btn { background: #e0e4ec; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; color: #4f5e7b; }
         .tab-btn.active { background: #1a237e; color: white; }
@@ -26,42 +29,34 @@
         .result-card { border: 1px solid #eef0f5; border-radius: 10px; padding: 15px; background: #fafbfc; }
         .progress-bar-bg { background: #e0e4ec; height: 16px; border-radius: 8px; overflow: hidden; margin: 8px 0 15px 0; }
         .progress-bar-fill { background: #1a237e; height: 100%; transition: width 0.4s ease; }
-        
-        /* Metrics styling */
         .metrics-banner { background: #e8f5e9; border: 2px solid #a4deab; padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-top: 25px; }
     </style>
-    <!-- Include html2pdf.js via CDN for client-side PDF compilation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
-<!-- 🔒 SECURE ADMIN LOGIN SCREEN OVERLAY -->
 <div id="adminLoginOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #f4f6f9; z-index: 10000; display: flex; align-items: center; justify-content: center; font-family: 'Segoe UI', Arial, sans-serif;">
     <div style="width: 100%; max-width: 400px; padding: 30px; background: #ffffff; border-radius: 14px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center;">
         <span style="font-size: 50px;">🔐</span>
         <h1 style="color: #1a237e; margin-top: 15px; font-size: 26px; font-weight: 800;">Admin Authentication</h1>
         <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Please enter the system passcode to manage terminal status configurations.</p>
-        
         <input type="password" id="adminPasswordInput" class="admin-input" placeholder="Enter Admin Passcode" autocomplete="off">
         <button id="adminSubmitLoginBtn" class="admin-btn">Unlock Dashboard</button>
     </div>
 </div>
 
-<!-- ⚙️ MAIN ADMINISTRATIVE CONTROL PANEL -->
 <div id="adminDashboardContent" class="voting-container" style="display: none;">
     <header class="voting-header">
         <h1>⚙️ System Administration</h1>
         <p>Manage real-time voting configurations and monitor live election insights.</p>
     </header>
 
-    <!-- Admin Sub-Navigation Tabs -->
     <div class="admin-tabs">
         <button id="tabDashboardBtn" class="tab-btn active">📊 Live Dashboard</button>
         <button id="tabSetupBtn" class="tab-btn">🔧 Ballot Setup</button>
     </div>
 
     <main>
-        <!-- MASTER STATUS SECTION (Always Visible for safety controls) -->
         <div class="admin-box">
             <div style="display: flex; align-items: center; justify-content: space-between;">
                 <div>
@@ -72,7 +67,7 @@
             </div>
         </div>
 
-        <!-- VIEW A: LIVE METRICS & RESULTS DASHBOARD -->
+        <!-- DASHBOARD VIEW PANEL -->
         <div id="panelDashboard" class="tab-panel">
             <div class="admin-box" style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
@@ -82,7 +77,6 @@
                 <button id="downloadPdfBtn" class="toggle-status-btn" style="background-color: #1a237e;">📄 Export PDF Report</button>
             </div>
 
-            <!-- PDF printable container wrap target -->
             <div id="pdfExportWrapper" class="admin-box">
                 <div style="margin-bottom: 20px; border-bottom: 2px solid #f4f6f9; padding-bottom: 10px;">
                     <h3 style="color: #1a237e; margin: 0;">Official School Election Results Summary</h3>
@@ -93,7 +87,6 @@
                     <p style="color: #777; text-align: center; grid-column: 1/-1;">No data available.</p>
                 </div>
 
-                <!-- TOTAL VOTES CAST SUMMARY SECTION -->
                 <div class="metrics-banner">
                     <div>
                         <h4 style="margin: 0; color: #1b5e20; font-size: 18px;">Total Ballots Processed</h4>
@@ -104,9 +97,8 @@
             </div>
         </div>
 
-        <!-- VIEW B: BALLOT SETUP TAB PANELS -->
+        <!-- BALLOT SETUP VIEW PANEL -->
         <div id="panelSetup" class="tab-panel" style="display: none;">
-            <!-- Create Ballot Categories (Positions & Candidates) -->
             <div class="admin-box">
                 <h2 style="color: #1a237e; margin-top: 0; border-bottom: 2px solid #f4f6f9; padding-bottom: 10px;">Create New Election Role</h2>
                 
@@ -126,7 +118,6 @@
                 <button id="createRoleBtn" class="admin-btn" style="background-color: #28a745;">Add Position to Ballot</button>
             </div>
 
-            <!-- Active Ballot Manager List (With the Reset button nested right here!) -->
             <div class="admin-box">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f4f6f9; padding-bottom: 10px; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                     <h2 style="color: #1a237e; margin: 0;">Active Ballot Structure</h2>
