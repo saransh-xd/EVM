@@ -12,6 +12,7 @@ let electionStatus = "open";
 
 // Tracking state for the unconfirmed, selected candidate
 let selectedChoice = null; // Stores 'candidateA' or 'candidateB'
+let isCooldownActive = false; // Prevents interactions during countdowns
 
 // --- 1. LIVE MONITOR: MASTER ELECTION CLOSE SWITCH ---
 onValue(ref(db, "settings/status"), (snapshot) => {
@@ -42,7 +43,9 @@ onValue(ref(db), (snapshot) => {
         currentRoleIndex = 0;
     }
 
-    renderCurrentRole();
+    if (!isCooldownActive) {
+        renderCurrentRole();
+    }
 });
 
 // --- 3. RENDERING ENGINE (ONE ROLE AT A TIME WITH FIXED ACTION BAR) ---
@@ -120,8 +123,38 @@ function renderCurrentRole() {
     `;
 }
 
-// --- 4. CLICK CAPTURE FOR SELECTION, CONFIRMATION, AND RESET LOOPS ---
+// --- 4. COOLDOWN COUNTDOWN SCREEN FUNCTION ---
+function triggerVoteCooldown() {
+    isCooldownActive = true;
+    let secondsLeft = 3;
+
+    const runCountdown = () => {
+        if (secondsLeft <= 0) {
+            isCooldownActive = false;
+            currentRoleIndex++;
+            renderCurrentRole();
+        } else {
+            ballotPaper.innerHTML = `
+                <div style="text-align:center; padding: 50px 40px; color: #2e7d32; background: #ffffff; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 2px solid #a4deab; animation: fadeIn 0.2s ease-out;">
+                    <span style="font-size: 50px;">✅</span>
+                    <h2 style="color: #1a237e; margin-top: 15px; margin-bottom: 8px;">Vote Recorded Successfully!</h2>
+                    <p style="color: #666; font-size: 15px; margin-bottom: 20px;">Your selection has been saved securely to the database.</p>
+                    <div style="display: inline-block; padding: 8px 20px; background-color: #e8f5e9; color: #2e7d32; font-weight: bold; border-radius: 20px; font-size: 14px;">
+                        ⏱️ Next ballot loading in ${secondsLeft}s...
+                    </div>
+                </div>`;
+            secondsLeft--;
+            setTimeout(runCountdown, 1000);
+        }
+    };
+
+    runCountdown();
+}
+
+// --- 5. CLICK CAPTURE FOR SELECTION, CONFIRMATION, AND RESET LOOPS ---
 ballotPaper.addEventListener("click", async (e) => {
+    if (isCooldownActive) return; // Completely ignore screen taps during the 3s window
+
     // 🔄 Handle Next Student Button Click
     if (e.target && e.target.id === "nextStudentBtn") {
         currentRoleIndex = 0;
@@ -142,7 +175,6 @@ ballotPaper.addEventListener("click", async (e) => {
         const choice = e.target.getAttribute("data-candidate");
         const activeRole = allRoles[currentRoleIndex];
         
-        // Freeze interactions while pushing the transaction state outward
         e.target.disabled = true;
         e.target.textContent = "Saving...";
 
@@ -154,10 +186,9 @@ ballotPaper.addEventListener("click", async (e) => {
                 return (currentValue || 0) + 1;
             });
 
-            // Clean up tracking caches and cycle screen layout forward
+            // Wipe out temporary selection and fire up the 3-second cooldown transition
             selectedChoice = null;
-            currentRoleIndex++;
-            renderCurrentRole();
+            triggerVoteCooldown();
 
         } catch (err) {
             console.error("Secure transaction runtime failure:", err);
@@ -174,7 +205,6 @@ ballotPaper.addEventListener("click", async (e) => {
 
     const clickedChoice = btn.getAttribute("data-candidate");
     
-    // Toggle logic: tapping an already highlighted candidate cancels the selection
     if (selectedChoice === clickedChoice) {
         selectedChoice = null;
     } else {
