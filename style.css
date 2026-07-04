@@ -1,122 +1,140 @@
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial, Helvetica, sans-serif;
+/* ==========================================================================
+   1. GLOBAL FRAMEWORK DECORATIONS
+   ========================================================================== */
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: #f4f6f9;
+    margin: 0;
+    padding: 10px;
+    color: #333333;
 }
 
-body{
-    background:#eaf2ff;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    min-height:100vh;
+.voting-container {
+    max-width: 700px;
+    margin: 30px auto;
+    padding: 0 15px;
 }
 
-.container{
-    width:380px;
-    background:white;
-    padding:30px;
-    border-radius:18px;
-    box-shadow:0 10px 30px rgba(0,0,0,.15);
+/* ==========================================================================
+   2. APP HEADER BRAND LAYOUTS
+   ========================================================================== */
+.voting-header {
+    text-align: center;
+    margin-bottom: 35px;
 }
 
-h1{
-    text-align:center;
-    color:#1565c0;
-    margin-bottom:10px;
+.voting-header h1 {
+    color: #1a237e;
+    font-size: 34px;
+    margin-bottom: 8px;
+    font-weight: 800;
 }
 
-p{
-    text-align:center;
-    color:#666;
-    margin-bottom:25px;
+.voting-header p {
+    color: #666;
+    font-size: 16px;
+    margin: 0 auto;
+    max-width: 500px;
+    line-height: 1.5;
 }
 
-button{
-    width:100%;
-    padding:18px;
-    margin-bottom:20px;
-    font-size:22px;
-    border:none;
-    border-radius:12px;
-    cursor:pointer;
-    background:#1976d2;
-    color:white;
-    transition:.2s;
+/* ==========================================================================
+   3. VOTER BALLOT ELEMENT CARDS
+   ========================================================================== */
+.voter-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border: 1px solid #eef0f5;
 }
 
-button:hover{
-    background:#125aa6;
+.voter-card h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #1a237e;
+    font-size: 22px;
+    text-align: center;
+    border-bottom: 2px solid #f4f6f9;
+    padding-bottom: 12px;
 }
 
-button:disabled{
-    background:#999;
-    cursor:not-allowed;
+/* GRID SETUP FOR CANDIDATES */
+.voter-options-grid {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
 }
 
-#status{
-    margin-top:10px;
-    padding:15px;
-    background:#f5f5f5;
-    border-radius:10px;
-    font-weight:bold;
-    color:#222;
+/* ==========================================================================
+   4. INTERACTIVE VOTE INTERACTION BUTTONS
+   ========================================================================== */
+.vote-action-btn {
+    flex: 1;
+    min-width: 240px;
+    background: #ffffff;
+    border: 2px solid #e0e4ec;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.popup{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.45);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    backdrop-filter:blur(4px);
+.vote-action-btn:hover {
+    transform: translateY(-3px);
+    border-color: #1a237e;
+    box-shadow: 0 6px 15px rgba(26, 35, 126, 0.1);
 }
 
-.hidden{
-    display:none;
+.vote-action-btn:active {
+    transform: translateY(0);
 }
 
-.popup-box{
-    background:white;
-    width:320px;
-    padding:25px;
-    border-radius:15px;
-    text-align:center;
-    box-shadow:0 10px 30px rgba(0,0,0,.2);
+.vote-action-btn .avatar {
+    font-size: 44px;
+    margin-bottom: 10px;
 }
 
-.popup-box h2{
-    color:#1565c0;
-    margin-bottom:15px;
+.vote-action-btn .cand-name {
+    font-size: 18px;
+    font-weight: bold;
+    color: #222;
+    margin-bottom: 8px;
+    text-align: center;
 }
 
-.popup-box p{
-    margin-bottom:20px;
+.vote-action-btn .action-tag {
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: #1a237e;
+    background-color: #edeefc;
+    padding: 5px 14px;
+    border-radius: 20px;
+    transition: all 0.15s ease;
 }
 
-.popup-buttons{
-    display:flex;
-    gap:10px;
+.vote-action-btn:hover .action-tag {
+    background-color: #1a237e;
+    color: #ffffff;
 }
 
-.popup-buttons button{
-    margin:0;
+/* ==========================================================================
+   5. FOOTER FRAME DISCLOSURES
+   ========================================================================== */
+.voting-footer {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e4ec;
 }
 
-.cancel{
-    background:#757575;
-}
-
-.cancel:hover{
-    background:#616161;
-}
-
-.confirm{
-    background:#1976d2;
-}
-
-.confirm:hover{
-    background:#125aa6;
+.voting-footer p {
+    font-size: 13px;
+    color: #999999;
 }
