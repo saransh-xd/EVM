@@ -66,7 +66,6 @@ tabSetupBtn.addEventListener("click", () => {
 
 // --- 3. FIREBASE UNIFIED SYNCHRONIZATION (LIVE CONFIG + METRICS) ---
 function initializeDashboardSync() {
-    // Monitor Online/Offline Gate Status
     onValue(ref(db, "settings/status"), (snapshot) => {
         const status = snapshot.val() || "open";
         currentSystemStatus = status;
@@ -84,13 +83,11 @@ function initializeDashboardSync() {
         }
     });
 
-    // Monitor Database Streams to build Setup Panels & Live Charts
     onValue(ref(db), (snapshot) => {
         const rootData = snapshot.val() || {};
         const configData = rootData.election_config || {};
         const voteData = rootData.election || {};
 
-        // Reset display targets
         adminLiveRolesContainer.innerHTML = "";
         liveDashboardChartsGrid.innerHTML = "";
 
@@ -111,14 +108,12 @@ function initializeDashboardSync() {
             const tallyB = (voteData[key] && voteData[key].candidateB) ? voteData[key].candidateB : 0;
             const totalVotes = tallyA + tallyB;
 
-            // Compute turnout total
             absoluteGlobalTurnout += totalVotes;
 
-            // Compute percentage splits safely
             const pctA = totalVotes > 0 ? ((tallyA / totalVotes) * 100).toFixed(0) : 0;
             const pctB = totalVotes > 0 ? ((tallyB / totalVotes) * 100).toFixed(0) : 0;
 
-            // Build View A: Live Performance Charts & Progress Bars
+            // Build View A: Performance Charts
             liveDashboardChartsGrid.innerHTML += `
                 <div class="result-card">
                     <h3 style="color: #1a237e; margin-top: 0; font-size: 16px;">${role.title}</h3>
@@ -134,24 +129,25 @@ function initializeDashboardSync() {
                 </div>
             `;
 
-            // Build View B: Management List Blocks with inline editable field structures
+            // 🎯 Build View B: Perfectly symmetrical, grouped side-by-side flex layout block
             adminLiveRolesContainer.innerHTML += `
                 <div class="role-list-item">
-                    <div>
-                        <strong style="font-size: 16px; color: #1a237e; display: block; margin-bottom: 10px;">${role.title}</strong>
-                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
+                    <div style="flex: 1;">
+                        <strong style="font-size: 16px; color: #1a237e; display: block; margin-bottom: 12px;">${role.title}</strong>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             <input type="text" class="inline-edit-input" id="inputA-${key}" value="${role.candidateA}">
-                            <span style="font-size: 12px; color: #888;">vs</span>
+                            <span style="font-size: 13px; font-weight: bold; color: #888;">vs</span>
                             <input type="text" class="inline-edit-input" id="inputB-${key}" value="${role.candidateB}">
-                            <button class="save-inline-btn" data-key="${key}">💾 Save Names</button>
                         </div>
                     </div>
-                    <button class="delete-btn" data-key="${key}">🗑️ Remove Role</button>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-left: 15px;">
+                        <button class="save-inline-btn" data-key="${key}">💾 Save Names</button>
+                        <button class="delete-btn" data-key="${key}">🗑️ Remove Role</button>
+                    </div>
                 </div>
             `;
         });
 
-        // Update Bottom Dashboard Cumulative Indicator
         globalVoteCastCounter.textContent = absoluteGlobalTurnout.toString();
     });
 }
@@ -199,7 +195,6 @@ createRoleBtn.addEventListener("click", async () => {
 
 // --- 6. INTERACTION CAPTURE: INLINE EDITS & ROLE DELETIONS ---
 adminLiveRolesContainer.addEventListener("click", async (e) => {
-    // A: Process inline candidate name updates
     if (e.target.classList.contains("save-inline-btn")) {
         const targetKey = e.target.getAttribute("data-key");
         const valA = document.getElementById(`inputA-${targetKey}`).value.trim();
@@ -229,7 +224,6 @@ adminLiveRolesContainer.addEventListener("click", async (e) => {
         return;
     }
 
-    // B: Process role removal configurations
     if (e.target.classList.contains("delete-btn")) {
         const targetKey = e.target.getAttribute("data-key");
         if (!confirm("Are you sure you want to completely erase this role? All associated votes will be lost.")) return;
@@ -243,10 +237,9 @@ adminLiveRolesContainer.addEventListener("click", async (e) => {
     }
 });
 
-// --- 7. 📄 HIGH-FIDELITY PDF EXPORT COMPILER ---
+// --- 7. PDF REPORT GENERATOR ---
 downloadPdfBtn.addEventListener("click", () => {
     const reportElement = document.getElementById("pdfExportWrapper");
-    
     const outputOptions = {
         margin:       15,
         filename:     'Official_Election_Results_Report.pdf',
@@ -265,18 +258,17 @@ downloadPdfBtn.addEventListener("click", () => {
     })
     .catch((error) => {
         console.error(error);
-        alert("An error occurred while compiling your document.");
         downloadPdfBtn.textContent = "📄 Export PDF Report";
         downloadPdfBtn.disabled = false;
     });
 });
 
-// --- 8. ⚠️ MASTER RESET ALL ELECTION VOTE COUNTS ---
+// --- 8. MASTER RESET ALL VOTES (BALLOT SETUP TAB LOGIC) ---
 resetAllVotesBtn.addEventListener("click", async () => {
     const firstConfirm = confirm("⚠️ WARNING: You are about to wipe out EVERY single vote recorded in the database. This action cannot be undone. Do you wish to proceed?");
     if (!firstConfirm) return;
 
-    const secondConfirm = confirm("🔥 FINAL CONFIRMATION: Are you absolutely certain you want to reset all vote tallies to 0?");
+    const secondConfirm = confirm("FINAL CONFIRMATION: Are you absolutely certain you want to reset all vote tallies to 0?");
     if (!secondConfirm) return;
 
     resetAllVotesBtn.disabled = true;
@@ -284,7 +276,6 @@ resetAllVotesBtn.addEventListener("click", async () => {
 
     try {
         const editButtons = adminLiveRolesContainer.querySelectorAll(".save-inline-btn");
-        
         if (editButtons.length === 0) {
             alert("No active roles found to reset.");
             return;
@@ -292,10 +283,7 @@ resetAllVotesBtn.addEventListener("click", async () => {
 
         const clearPromises = Array.from(editButtons).map(async (btn) => {
             const key = btn.getAttribute("data-key");
-            return set(ref(db, `election/${key}`), {
-                candidateA: 0,
-                candidateB: 0
-            });
+            return set(ref(db, `election/${key}`), { candidateA: 0, candidateB: 0 });
         });
 
         await Promise.all(clearPromises);
