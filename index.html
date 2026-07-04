@@ -3,53 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>School Election</title>
-
-    <link rel="stylesheet" href="style.css">
+    <title>School Electronic Voting System</title>
+    <link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
 
-<div class="container">
-
-    <h1 id="roleTitle">🗳️ Head Boy Election</h1>
-
-    <p id="progress">Position 1 of 8</p>
-
-    <p>Vote for your candidate</p>
-
-    <button id="candidateA">Candidate A</button>
-
-    <button id="candidateB">Candidate B</button>
-
-    <p id="status">🟢 Ready</p>
-
-</div>
-
-<div id="popup" class="popup hidden">
-
-    <div class="popup-box">
-
-        <h2>Confirm Vote</h2>
-
-        <p id="popupText"></p>
-
-        <div class="popup-buttons">
-
-            <button id="cancelVote" class="cancel">
-                Cancel
-            </button>
-
-            <button id="confirmVote" class="confirm">
-                Confirm
-            </button>
-
+<div id="electionClosedOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #ffffff; z-index: 9999; text-align: center; padding-top: 120px; font-family: 'Segoe UI', Arial, sans-serif;">
+    <div style="max-width: 500px; margin: 0 auto; padding: 20px;">
+        <span style="font-size: 80px;">🗳️</span>
+        <h1 style="color: #1a237e; margin-top: 20px; font-size: 32px; font-weight: 800;">Election is Currently Closed</h1>
+        <p style="color: #666666; font-size: 18px; line-height: 1.6; margin-bottom: 30px;">Voting has either concluded or has been temporarily paused by the election administrators. Thank you for your participation!</p>
+        <div style="display: inline-block; padding: 8px 16px; background-color: #f0f2f5; color: #1a237e; font-weight: bold; border-radius: 20px; font-size: 14px;">
+            🔄 Live System Monitor Active
         </div>
-
     </div>
-
 </div>
 
-<script type="module" src="app.js"></script>
+<div class="voting-container">
+    <header class="voting-header">
+        <h1>🗳️ School Election Ballot</h1>
+        <p>Please select your preferred candidate for each position below. Cast your vote carefully!</p>
+    </header>
 
+    <main id="ballotPaper">
+        <div id="loadingMessage" style="text-align: center; padding: 40px; color: #666;">
+            Loading official election ballot data...
+        </div>
+    </main>
+
+    <footer class="voting-footer">
+        <p>© School Election Commission. Secure Digital Voting Terminal.</p>
+    </footer>
+</div>
+
+<script type="module" src="app.js?v=11"></script>
 </body>
 </html>
