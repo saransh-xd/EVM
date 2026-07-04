@@ -1,5 +1,5 @@
 import { db, ref, onValue } from "./firebase.js";
-import { set, remove, push } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
+import { set, remove, push, update } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
 
 // DOM Node Selectors
 const adminLoginOverlay = document.getElementById("adminLoginOverlay");
@@ -25,6 +25,7 @@ const adminLiveRolesContainer = document.getElementById("adminLiveRolesContainer
 
 // Live Results Targets
 const liveDashboardChartsGrid = document.getElementById("liveDashboardChartsGrid");
+const globalVoteCastCounter = document.getElementById("globalVoteCastCounter");
 const downloadPdfBtn = document.getElementById("downloadPdfBtn");
 
 let currentSystemStatus = "open";
@@ -62,7 +63,7 @@ tabSetupBtn.addEventListener("click", () => {
     panelDashboard.style.display = "none";
 });
 
-// --- 3. FIREBASE UNIFIED SYNCHRONIZATION (LIVE CONFIG + CHARTS) ---
+// --- 3. FIREBASE UNIFIED SYNCHRONIZATION (LIVE CONFIG + METRICS) ---
 function initializeDashboardSync() {
     // Monitor Online/Offline Gate Status
     onValue(ref(db, "settings/status"), (snapshot) => {
@@ -93,11 +94,13 @@ function initializeDashboardSync() {
         liveDashboardChartsGrid.innerHTML = "";
 
         const keys = Object.keys(configData);
+        let absoluteGlobalTurnout = 0; // Cumulative counter accumulator
 
         if (keys.length === 0) {
             const emptyMsg = `<p style="text-align: center; color: #777; padding: 20px; grid-column: 1/-1;">The ballot is empty. Add elements inside the Ballot Setup tab.</p>`;
             adminLiveRolesContainer.innerHTML = emptyMsg;
             liveDashboardChartsGrid.innerHTML = emptyMsg;
+            globalVoteCastCounter.textContent = "0";
             return;
         }
 
@@ -106,6 +109,9 @@ function initializeDashboardSync() {
             const tallyA = (voteData[key] && voteData[key].candidateA) ? voteData[key].candidateA : 0;
             const tallyB = (voteData[key] && voteData[key].candidateB) ? voteData[key].candidateB : 0;
             const totalVotes = tallyA + tallyB;
+
+            // Add role-specific submissions into total turnout tally
+            absoluteGlobalTurnout += totalVotes;
 
             // Compute percentage splits safely
             const pctA = totalVotes > 0 ? ((tallyA / totalVotes) * 100).toFixed(0) : 0;
@@ -127,17 +133,25 @@ function initializeDashboardSync() {
                 </div>
             `;
 
-            // Build View B: Management List Blocks
+            // Build View B: Management List Blocks with inline editable field structures
             adminLiveRolesContainer.innerHTML += `
                 <div class="role-list-item">
                     <div>
-                        <strong style="font-size: 15px; color: #1a237e;">${role.title}</strong>
-                        <div style="font-size: 13px; color: #666; margin-top: 2px;">${role.candidateA} vs ${role.candidateB}</div>
+                        <strong style="font-size: 16px; color: #1a237e; display: block; margin-bottom: 10px;">${role.title}</strong>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
+                            <input type="text" class="inline-edit-input" id="inputA-${key}" value="${role.candidateA}">
+                            <span style="font-size: 12px; color: #888;">vs</span>
+                            <input type="text" class="inline-edit-input" id="inputB-${key}" value="${role.candidateB}">
+                            <button class="save-inline-btn" data-key="${key}">💾 Save Names</button>
+                        </div>
                     </div>
-                    <button class="delete-btn" data-key="${key}">Remove</button>
+                    <button class="delete-btn" data-key="${key}">🗑️ Remove Role</button>
                 </div>
             `;
         });
+
+        // Set the calculated turnover into the bottom dashboard counter element
+        globalVoteCastCounter.textContent = absoluteGlobalTurnout.toString();
     });
 }
 
@@ -182,17 +196,49 @@ createRoleBtn.addEventListener("click", async () => {
     }
 });
 
-// --- 6. ROLE REMOVAL ACTION ---
+// --- 6. INTERACTION CAPTURE: INLINE EDITS & ROLE DELETIONS ---
 adminLiveRolesContainer.addEventListener("click", async (e) => {
-    if (!e.target.classList.contains("delete-btn")) return;
-    const targetKey = e.target.getAttribute("data-key");
-    if (!confirm("Are you sure you want to completely erase this role?")) return;
+    // A: Process inline candidate name updates
+    if (e.target.classList.contains("save-inline-btn")) {
+        const targetKey = e.target.getAttribute("data-key");
+        const valA = document.getElementById(`inputA-${targetKey}`).value.trim();
+        const valB = document.getElementById(`inputB-${targetKey}`).value.trim();
 
-    try {
-        await remove(ref(db, `election_config/${targetKey}`));
-        await remove(ref(db, `election/${targetKey}`));
-    } catch (err) {
-        console.error(err);
+        if (!valA || !valB) {
+            alert("Candidate names cannot be empty strings.");
+            return;
+        }
+
+        e.target.disabled = true;
+        e.target.textContent = "Saving...";
+
+        try {
+            await update(ref(db, `election_config/${targetKey}`), {
+                candidateA: valA,
+                candidateB: valB
+            });
+            alert("Names successfully updated real-time!");
+        } catch (err) {
+            console.error("Mutation error:", err);
+            alert("Failed to modify names node.");
+        } finally {
+            e.target.disabled = false;
+            e.target.textContent = "💾 Save Names";
+        }
+        return;
+    }
+
+    // B: Process role removal configurations
+    if (e.target.classList.contains("delete-btn")) {
+        const targetKey = e.target.getAttribute("data-key");
+        if (!confirm("Are you sure you want to completely erase this role? All associated votes will be lost.")) return;
+
+        try {
+            await remove(ref(db, `election_config/${targetKey}`));
+            await remove(ref(db, `election/${targetKey}`));
+        } catch (err) {
+            console.error(err);
+        }
     }
 });
 
@@ -200,7 +246,6 @@ adminLiveRolesContainer.addEventListener("click", async (e) => {
 downloadPdfBtn.addEventListener("click", () => {
     const reportElement = document.getElementById("pdfExportWrapper");
     
-    // Configure compilation attributes for html2pdf
     const outputOptions = {
         margin:       15,
         filename:     'Official_Election_Results_Report.pdf',
