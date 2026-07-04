@@ -9,6 +9,7 @@
         .admin-box { background: #fff; padding: 25px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid #eef0f5; }
         .admin-input { width: 100%; padding: 12px; margin: 10px 0 20px 0; border: 2px solid #e0e4ec; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
         .inline-edit-input { padding: 8px 12px; border: 1px solid #ccd2e0; border-radius: 6px; font-size: 14px; width: 150px; box-sizing: border-box; }
+        .inline-order-input { padding: 8px 6px; border: 1px solid #ccd2e0; border-radius: 6px; font-size: 14px; width: 60px; text-align: center; box-sizing: border-box; }
         .admin-btn { background-color: #1a237e; color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; }
         .admin-btn:hover { background-color: #0d1442; }
         .toggle-status-btn { background-color: #28a745; color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; }
@@ -18,7 +19,7 @@
         .role-list-item { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #f4f6f9; gap: 20px; }
         .role-list-item:last-child { border-bottom: none; }
         
-        /* 🎯 UNIFIED BUTTON DIMENSIONS FOR PERFECT SYMMETRY */
+        /* UNIFIED BUTTON DIMENSIONS FOR PERFECT SYMMETRY */
         .save-inline-btn { background-color: #007bff; color: white; border: none; padding: 10px 16px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: 38px; box-sizing: border-box; white-space: nowrap; }
         .delete-btn { background-color: #dc3545; color: white; border: none; padding: 10px 16px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: 38px; box-sizing: border-box; white-space: nowrap; }
         
@@ -102,10 +103,18 @@
             <div class="admin-box">
                 <h2 style="color: #1a237e; margin-top: 0; border-bottom: 2px solid #f4f6f9; padding-bottom: 10px;">Create New Election Role</h2>
                 
-                <label style="font-weight: bold; color: #444;">Election Position Title</label>
-                <input type="text" id="newRoleTitle" class="admin-input" placeholder="e.g., School President">
+                <div style="display: flex; gap: 15px; align-items: center; margin-top: 10px;">
+                    <div style="flex: 3;">
+                        <label style="font-weight: bold; color: #444;">Election Position Title</label>
+                        <input type="text" id="newRoleTitle" class="admin-input" placeholder="e.g., School President" style="margin-bottom:0;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-weight: bold; color: #444;">Conduct Order</label>
+                        <input type="number" id="newRoleSequence" class="admin-input" value="1" min="1" style="margin-bottom:0;">
+                    </div>
+                </div>
 
-                <div style="display: flex; gap: 15px;">
+                <div style="display: flex; gap: 15px; margin-top: 20px;">
                     <div style="flex: 1;">
                         <label style="font-weight: bold; color: #444;">Candidate A Name</label>
                         <input type="text" id="candidateAName" class="admin-input" placeholder="First Candidate">
@@ -120,7 +129,7 @@
 
             <div class="admin-box">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f4f6f9; padding-bottom: 10px; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                    <h2 style="color: #1a237e; margin: 0;">Active Ballot Structure</h2>
+                    <h2 style="color: #1a237e; margin: 0;">Active Ballot Structure (Sorted by Conduct Order)</h2>
                     <button id="resetAllVotesBtn" class="toggle-status-btn" style="background-color: #dc3545; padding: 8px 16px; font-size: 14px;">⚠️ Reset All Votes</button>
                 </div>
                 <div id="adminLiveRolesContainer">
