@@ -18,6 +18,7 @@ const panelSetup = document.getElementById("panelSetup");
 
 // Management Setup Inputs
 const newRoleTitle = document.getElementById("newRoleTitle");
+const newRoleSequence = document.getElementById("newRoleSequence");
 const candidateAName = document.getElementById("candidateAName");
 const candidateBName = document.getElementById("candidateBName");
 const createRoleBtn = document.getElementById("createRoleBtn");
@@ -64,7 +65,7 @@ tabSetupBtn.addEventListener("click", () => {
     panelDashboard.style.display = "none";
 });
 
-// --- 3. FIREBASE UNIFIED SYNCHRONIZATION (LIVE CONFIG + METRICS) ---
+// --- 3. FIREBASE UNIFIED SYNCHRONIZATION (LIVE CONFIG + SORTING) ---
 function initializeDashboardSync() {
     onValue(ref(db, "settings/status"), (snapshot) => {
         const status = snapshot.val() || "open";
@@ -91,10 +92,21 @@ function initializeDashboardSync() {
         adminLiveRolesContainer.innerHTML = "";
         liveDashboardChartsGrid.innerHTML = "";
 
-        const keys = Object.keys(configData);
+        // Transform into array so we can process and sort sequentially
+        let structuredRoles = Object.keys(configData).map(key => {
+            return {
+                key: key,
+                ...configData[key],
+                sequence: parseInt(configData[key].sequence || 1)
+            };
+        });
+
+        // 📊 SORT ROLES LOGIC: Conduct lowest sequence values first (1, 2, 3...)
+        structuredRoles.sort((a, b) => a.sequence - b.sequence);
+
         let absoluteGlobalTurnout = 0;
 
-        if (keys.length === 0) {
+        if (structuredRoles.length === 0) {
             const emptyMsg = `<p style="text-align: center; color: #777; padding: 20px; grid-column: 1/-1;">The ballot is empty. Add elements inside the Ballot Setup tab.</p>`;
             adminLiveRolesContainer.innerHTML = emptyMsg;
             liveDashboardChartsGrid.innerHTML = emptyMsg;
@@ -102,8 +114,8 @@ function initializeDashboardSync() {
             return;
         }
 
-        keys.forEach(key => {
-            const role = configData[key];
+        structuredRoles.forEach(role => {
+            const key = role.key;
             const tallyA = (voteData[key] && voteData[key].candidateA) ? voteData[key].candidateA : 0;
             const tallyB = (voteData[key] && voteData[key].candidateB) ? voteData[key].candidateB : 0;
             const totalVotes = tallyA + tallyB;
@@ -113,10 +125,13 @@ function initializeDashboardSync() {
             const pctA = totalVotes > 0 ? ((tallyA / totalVotes) * 100).toFixed(0) : 0;
             const pctB = totalVotes > 0 ? ((tallyB / totalVotes) * 100).toFixed(0) : 0;
 
-            // Build View A: Performance Charts
+            // Build View A: Sorted Performance Charts
             liveDashboardChartsGrid.innerHTML += `
                 <div class="result-card">
-                    <h3 style="color: #1a237e; margin-top: 0; font-size: 16px;">${role.title}</h3>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3 style="color: #1a237e; margin-top: 0; font-size: 16px;">${role.title}</h3>
+                        <span style="background: #e1e5f2; color: #1a237e; font-size: 11px; padding: 2px 8px; font-weight: bold; border-radius: 10px;">Order: ${role.sequence}</span>
+                    </div>
                     <p style="font-size: 12px; color: #666; margin-bottom: 12px;">Total Votes Placed: <strong>${totalVotes}</strong></p>
                     
                     <div style="font-size: 14px; color: #333;">
@@ -129,11 +144,15 @@ function initializeDashboardSync() {
                 </div>
             `;
 
-            // 🎯 Build View B: Perfectly symmetrical, grouped side-by-side flex layout block
+            // Build View B: Management List Block with inline Editable Position Sorting Order inputs
             adminLiveRolesContainer.innerHTML += `
                 <div class="role-list-item">
                     <div style="flex: 1;">
-                        <strong style="font-size: 16px; color: #1a237e; display: block; margin-bottom: 12px;">${role.title}</strong>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                            <span style="font-size: 12px; font-weight: bold; color: #666;">Order:</span>
+                            <input type="number" class="inline-order-input" id="order-${key}" value="${role.sequence}" min="1">
+                            <strong style="font-size: 16px; color: #1a237e;">${role.title}</strong>
+                        </div>
                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             <input type="text" class="inline-edit-input" id="inputA-${key}" value="${role.candidateA}">
                             <span style="font-size: 13px; font-weight: bold; color: #888;">vs</span>
@@ -141,7 +160,7 @@ function initializeDashboardSync() {
                         </div>
                     </div>
                     <div style="display: flex; align-items: center; gap: 10px; margin-left: 15px;">
-                        <button class="save-inline-btn" data-key="${key}">💾 Save Names</button>
+                        <button class="save-inline-btn" data-key="${key}">💾 Save Changes</button>
                         <button class="delete-btn" data-key="${key}">🗑️ Remove Role</button>
                     </div>
                 </div>
@@ -165,11 +184,12 @@ masterStatusToggleBtn.addEventListener("click", async () => {
     }
 });
 
-// --- 5. NEW ROLE GENERATOR ---
+// --- 5. NEW ROLE GENERATOR (WITH INITIAL SEQUENCE) ---
 createRoleBtn.addEventListener("click", async () => {
     const title = newRoleTitle.value.trim();
     const candA = candidateAName.value.trim();
     const candB = candidateBName.value.trim();
+    const sequenceValue = parseInt(newRoleSequence.value) || 1;
 
     if (!title || !candA || !candB) {
         alert("Please complete all configuration fields.");
@@ -179,12 +199,13 @@ createRoleBtn.addEventListener("click", async () => {
     createRoleBtn.disabled = true;
     try {
         const newPositionRef = push(ref(db, "election_config"));
-        await set(newPositionRef, { title, candidateA: candA, candidateB: candB });
+        await set(newPositionRef, { title, candidateA: candA, candidateB: candB, sequence: sequenceValue });
         await set(ref(db, `election/${newPositionRef.key}`), { candidateA: 0, candidateB: 0 });
 
         newRoleTitle.value = "";
         candidateAName.value = "";
         candidateBName.value = "";
+        newRoleSequence.value = "1";
         alert("🎉 New ballot element posted successfully!");
     } catch (err) {
         console.error(err);
@@ -193,12 +214,13 @@ createRoleBtn.addEventListener("click", async () => {
     }
 });
 
-// --- 6. INTERACTION CAPTURE: INLINE EDITS & ROLE DELETIONS ---
+// --- 6. INTERACTION CAPTURE: INLINE EDITS (NAMES & SEQUENCE ORDER) & DELETIONS ---
 adminLiveRolesContainer.addEventListener("click", async (e) => {
     if (e.target.classList.contains("save-inline-btn")) {
         const targetKey = e.target.getAttribute("data-key");
         const valA = document.getElementById(`inputA-${targetKey}`).value.trim();
         const valB = document.getElementById(`inputB-${targetKey}`).value.trim();
+        const valSeq = parseInt(document.getElementById(`order-${targetKey}`).value) || 1;
 
         if (!valA || !valB) {
             alert("Candidate names cannot be empty.");
@@ -211,15 +233,16 @@ adminLiveRolesContainer.addEventListener("click", async (e) => {
         try {
             await update(ref(db, `election_config/${targetKey}`), {
                 candidateA: valA,
-                candidateB: valB
+                candidateB: valB,
+                sequence: valSeq
             });
-            alert("Names successfully updated real-time!");
+            alert("Config and display conduct order successfully rearranged!");
         } catch (err) {
             console.error(err);
-            alert("Failed to modify names node.");
+            alert("Failed to modify configuration matrix.");
         } finally {
             e.target.disabled = false;
-            e.target.textContent = "💾 Save Names";
+            e.target.textContent = "💾 Save Changes";
         }
         return;
     }
@@ -263,7 +286,7 @@ downloadPdfBtn.addEventListener("click", () => {
     });
 });
 
-// --- 8. MASTER RESET ALL VOTES (BALLOT SETUP TAB LOGIC) ---
+// --- 8. MASTER RESET ALL VOTES ---
 resetAllVotesBtn.addEventListener("click", async () => {
     const firstConfirm = confirm("⚠️ WARNING: You are about to wipe out EVERY single vote recorded in the database. This action cannot be undone. Do you wish to proceed?");
     if (!firstConfirm) return;
