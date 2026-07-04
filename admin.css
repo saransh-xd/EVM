@@ -109,7 +109,23 @@ h1 {
     padding-bottom: 8px;
 }
 
-/* Special styling wrapper for the mass reset zone */
+/* 🚦 MASTER TOGGLE CARD PARAMETERS */
+.status-card {
+    border-left: 5px solid #1a237e !important;
+}
+
+.status-btn {
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+/* ⚠️ DANGER ZONE RESETS SETUP */
 .danger-card {
     border: 2px dashed #dc3545 !important;
     background: #fff8f8 !important;
