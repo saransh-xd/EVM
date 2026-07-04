@@ -27,6 +27,7 @@ const adminLiveRolesContainer = document.getElementById("adminLiveRolesContainer
 const liveDashboardChartsGrid = document.getElementById("liveDashboardChartsGrid");
 const globalVoteCastCounter = document.getElementById("globalVoteCastCounter");
 const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+const resetAllVotesBtn = document.getElementById("resetAllVotesBtn");
 
 let currentSystemStatus = "open";
 
@@ -94,7 +95,7 @@ function initializeDashboardSync() {
         liveDashboardChartsGrid.innerHTML = "";
 
         const keys = Object.keys(configData);
-        let absoluteGlobalTurnout = 0; // Cumulative counter accumulator
+        let absoluteGlobalTurnout = 0;
 
         if (keys.length === 0) {
             const emptyMsg = `<p style="text-align: center; color: #777; padding: 20px; grid-column: 1/-1;">The ballot is empty. Add elements inside the Ballot Setup tab.</p>`;
@@ -110,14 +111,14 @@ function initializeDashboardSync() {
             const tallyB = (voteData[key] && voteData[key].candidateB) ? voteData[key].candidateB : 0;
             const totalVotes = tallyA + tallyB;
 
-            // Add role-specific submissions into total turnout tally
+            // Compute turnout total
             absoluteGlobalTurnout += totalVotes;
 
             // Compute percentage splits safely
             const pctA = totalVotes > 0 ? ((tallyA / totalVotes) * 100).toFixed(0) : 0;
             const pctB = totalVotes > 0 ? ((tallyB / totalVotes) * 100).toFixed(0) : 0;
 
-            // Build View A: Live Performance Charts & Bars
+            // Build View A: Live Performance Charts & Progress Bars
             liveDashboardChartsGrid.innerHTML += `
                 <div class="result-card">
                     <h3 style="color: #1a237e; margin-top: 0; font-size: 16px;">${role.title}</h3>
@@ -150,7 +151,7 @@ function initializeDashboardSync() {
             `;
         });
 
-        // Set the calculated turnover into the bottom dashboard counter element
+        // Update Bottom Dashboard Cumulative Indicator
         globalVoteCastCounter.textContent = absoluteGlobalTurnout.toString();
     });
 }
@@ -205,7 +206,7 @@ adminLiveRolesContainer.addEventListener("click", async (e) => {
         const valB = document.getElementById(`inputB-${targetKey}`).value.trim();
 
         if (!valA || !valB) {
-            alert("Candidate names cannot be empty strings.");
+            alert("Candidate names cannot be empty.");
             return;
         }
 
@@ -219,7 +220,7 @@ adminLiveRolesContainer.addEventListener("click", async (e) => {
             });
             alert("Names successfully updated real-time!");
         } catch (err) {
-            console.error("Mutation error:", err);
+            console.error(err);
             alert("Failed to modify names node.");
         } finally {
             e.target.disabled = false;
@@ -263,9 +264,47 @@ downloadPdfBtn.addEventListener("click", () => {
         downloadPdfBtn.disabled = false;
     })
     .catch((error) => {
-        console.error("PDF engine crash summary:", error);
+        console.error(error);
         alert("An error occurred while compiling your document.");
         downloadPdfBtn.textContent = "📄 Export PDF Report";
         downloadPdfBtn.disabled = false;
     });
+});
+
+// --- 8. ⚠️ MASTER RESET ALL ELECTION VOTE COUNTS ---
+resetAllVotesBtn.addEventListener("click", async () => {
+    const firstConfirm = confirm("⚠️ WARNING: You are about to wipe out EVERY single vote recorded in the database. This action cannot be undone. Do you wish to proceed?");
+    if (!firstConfirm) return;
+
+    const secondConfirm = confirm("🔥 FINAL CONFIRMATION: Are you absolutely certain you want to reset all vote tallies to 0?");
+    if (!secondConfirm) return;
+
+    resetAllVotesBtn.disabled = true;
+    resetAllVotesBtn.textContent = "Clearing...";
+
+    try {
+        const editButtons = adminLiveRolesContainer.querySelectorAll(".save-inline-btn");
+        
+        if (editButtons.length === 0) {
+            alert("No active roles found to reset.");
+            return;
+        }
+
+        const clearPromises = Array.from(editButtons).map(async (btn) => {
+            const key = btn.getAttribute("data-key");
+            return set(ref(db, `election/${key}`), {
+                candidateA: 0,
+                candidateB: 0
+            });
+        });
+
+        await Promise.all(clearPromises);
+        alert("🎉 Success! All election data streams have been reset to 0.");
+    } catch (err) {
+        console.error(err);
+        alert("An error occurred while resetting data streams.");
+    } finally {
+        resetAllVotesBtn.disabled = false;
+        resetAllVotesBtn.textContent = "⚠️ Reset All Votes";
+    }
 });
