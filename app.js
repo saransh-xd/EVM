@@ -123,24 +123,17 @@ function renderCurrentRole() {
     `;
 }
 
-// --- 4. COOLDOWN COUNTDOWN SCREEN WITH NATIVE AUDIO PROMPT ---
+// --- 4. COOLDOWN COUNTDOWN SCREEN WITH CUSTOM AUDIO ---
 function triggerVoteCooldown() {
     isCooldownActive = true;
     let secondsLeft = 3;
 
-    // 🔊 AUDIO NOTIFICATION SYSTEM
+    // 🔊 PLAY YOUR CUSTOM FILE VERBATIM
     try {
-        // Cancel any pending speech queues to prevent overlap stutter
-        window.speechSynthesis.cancel();
-        
-        const announcement = new SpeechSynthesisUtterance("Vote counted, please continue on next vote.");
-        announcement.rate = 1.0;  // Normal speaking pace
-        announcement.pitch = 1.0; // Standard voice timbre
-        announcement.lang = 'en-US'; 
-        
-        window.speechSynthesis.speak(announcement);
+        const voteAudio = new Audio("Vote Counted Please continue on next vote.wav");
+        voteAudio.play();
     } catch (audioError) {
-        console.warn("Speech engine context could not initialize:", audioError);
+        console.warn("Audio file could not be played:", audioError);
     }
 
     const runCountdown = () => {
