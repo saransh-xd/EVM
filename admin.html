@@ -93,7 +93,7 @@
                     <p style="color: #777; text-align: center; grid-column: 1/-1;">No data available.</p>
                 </div>
 
-                <!-- 🗳️ TOTAL VOTES CAST SUMMARY SECTION -->
+                <!-- TOTAL VOTES CAST SUMMARY SECTION -->
                 <div class="metrics-banner">
                     <div>
                         <h4 style="margin: 0; color: #1b5e20; font-size: 18px;">Total Ballots Processed</h4>
@@ -126,9 +126,12 @@
                 <button id="createRoleBtn" class="admin-btn" style="background-color: #28a745;">Add Position to Ballot</button>
             </div>
 
-            <!-- Active Ballot Manager List -->
+            <!-- Active Ballot Manager List (With the Reset button nested right here!) -->
             <div class="admin-box">
-                <h2 style="color: #1a237e; margin-top: 0; border-bottom: 2px solid #f4f6f9; padding-bottom: 10px;">Active Ballot Structure</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f4f6f9; padding-bottom: 10px; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                    <h2 style="color: #1a237e; margin: 0;">Active Ballot Structure</h2>
+                    <button id="resetAllVotesBtn" class="toggle-status-btn" style="background-color: #dc3545; padding: 8px 16px; font-size: 14px;">⚠️ Reset All Votes</button>
+                </div>
                 <div id="adminLiveRolesContainer">
                     <p style="text-align: center; color: #777; padding: 10px;">Loading live data track layers...</p>
                 </div>
