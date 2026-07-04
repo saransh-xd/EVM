@@ -14,7 +14,7 @@ let electionStatus = "open";
 let selectedChoice = null; // Stores 'candidateA' or 'candidateB'
 let isCooldownActive = false; // Prevents interactions during countdowns
 
-// --- 1. LIVE MONITOR: MASTER ELECTION CLOSE SWITCH ---
+// --- 1. LIVE MONITOR & SECURITY: MASTER ELECTION CLOSE SWITCH ---
 onValue(ref(db, "settings/status"), (snapshot) => {
     const status = snapshot.val() || "open";
     electionStatus = status;
@@ -221,3 +221,15 @@ ballotPaper.addEventListener("click", async (e) => {
     
     renderCurrentRole();
 });
+
+// --- 6. ADMIN UTILITIES: PASSWORD VALIDATION MECHANISM ---
+window.verifyAdminAccess = function() {
+    const userInput = prompt("Enter administrative passcode to unlock layout overrides:");
+    if (userInput === "saransh270912") {
+        alert("Access granted. Initializing configuration channels.");
+        return true;
+    } else {
+        alert("Invalid credentials. Action aborted.");
+        return false;
+    }
+};
