@@ -1,7 +1,7 @@
 import { db, ref, onValue } from "./firebase.js";
 import { set, remove, update } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
 
-const PASSWORD = "GOJOISTHEBEST";
+const PASSWORD = "saransh270912";
 
 // UI Screens
 const loginScreen = document.getElementById("loginScreen");
@@ -26,14 +26,32 @@ const addRoleBtn = document.getElementById("addRoleBtn");
 const downloadPdfBtn = document.getElementById("downloadPdfBtn");
 const massResetBtn = document.getElementById("massResetBtn");
 
-// Track current keys in local memory so the reset trigger knows exactly what nodes exist
+// Status View Controls
+const currentStatusText = document.getElementById("currentStatusText");
+const toggleStatusBtn = document.getElementById("toggleStatusBtn");
+
 let currentActiveKeys = [];
+let currentElectionStatus = "open";
 
 // --- DOWNLOAD PDF CLICK CONTROLLER ---
 downloadPdfBtn.onclick = () => {
     const dateStr = new Date().toLocaleDateString().replace(/\//g, '-');
     document.title = `Election_Final_Results_${dateStr}`;
     window.print();
+};
+
+// --- ELECTION STATUS MASTER TOGGLE ROUTER ---
+toggleStatusBtn.onclick = async () => {
+    const nextStatus = (currentElectionStatus === "open") ? "closed" : "open";
+    const msg = `Are you sure you want to change the election status to ${nextStatus.toUpperCase()}?`;
+    
+    if (confirm(msg)) {
+        try {
+            await set(ref(db, "settings/status"), nextStatus);
+        } catch (err) {
+            console.error("Status update failed:", err);
+        }
+    }
 };
 
 // --- MASS RESET BUTTON CLICK CONTROLLER ---
@@ -43,15 +61,11 @@ massResetBtn.onclick = async () => {
         return;
     }
 
-    // Double Confirmation system to prevent accidental wipes
     const firstConfirm = confirm("⚠️ CRITICAL WARNING:\n\nAre you sure you want to RESET ALL VOTE COUNTS back to 0?\nThis action cannot be undone.");
-    
     if (firstConfirm) {
         const secondConfirm = confirm("🛑 FINAL VERIFICATION:\n\nAre you absolutely sure? All live voting progress will be lost immediately.");
-        
         if (secondConfirm) {
             try {
-                // Loop through every single active position key and update its vote counters to 0
                 for (const key of currentActiveKeys) {
                     await set(ref(db, `election/${key}`), {
                         candidateA: 0,
@@ -160,6 +174,22 @@ setupRoleList.addEventListener("click", async (e) => {
 
 // --- CORE REALTIME SYNC HANDLER ---
 function loadDashboard(){
+    // Sync listener for master status control parameters
+    onValue(ref(db, "settings/status"), (statusSnapshot) => {
+        const statusValue = statusSnapshot.val() || "open";
+        currentElectionStatus = statusValue;
+
+        if (statusValue === "open") {
+            currentStatusText.innerHTML = "🟢 Status: <span style='color:#28a745;'>ELECTION IS LIVE</span>";
+            toggleStatusBtn.textContent = "🛑 Turn Election OFF";
+            toggleStatusBtn.style.backgroundColor = "#dc3545";
+        } else {
+            currentStatusText.innerHTML = "🔴 Status: <span style='color:#dc3545;'>ELECTION CLOSED</span>";
+            toggleStatusBtn.textContent = "🟢 Turn Election ON";
+            toggleStatusBtn.style.backgroundColor = "#28a745";
+        }
+    });
+
     onValue(ref(db), (snapshot) => {
         const rootData = snapshot.val() || {};
         const configData = rootData.election_config || {};
@@ -168,7 +198,6 @@ function loadDashboard(){
         liveResults.innerHTML = "";
         setupRoleList.innerHTML = "";
         
-        // Save the dynamic keys list globally for our Mass Reset handler to read
         currentActiveKeys = Object.keys(configData);
         
         if (currentActiveKeys.length === 0) {
@@ -191,7 +220,6 @@ function loadDashboard(){
             if(a > b) winner = role.candidateA;
             if(b > a) winner = role.candidateB;
 
-            // Render Tab 1 View: Live Clean Results Dashboard
             liveResults.innerHTML += `
             <div class="card">
                 <h2>${role.title}</h2>
@@ -201,7 +229,6 @@ function loadDashboard(){
             </div>
             `;
 
-            // Render Tab 2 View: Interactive Setup Management Blocks
             setupRoleList.innerHTML += `
             <div class="setup-management-item">
                 <div class="setup-header-line">
@@ -223,7 +250,6 @@ function loadDashboard(){
             `;
         });
 
-        // Appends the absolute sum card at the bottom of Dashboard view
         liveResults.innerHTML += `
         <div class="card total">Total Votes Cast: ${totalVotes}</div>
         `;
