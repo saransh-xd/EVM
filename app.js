@@ -34,8 +34,8 @@ onValue(ref(db), (snapshot) => {
         ...configData[key]
     }));
 
-    // Reset view to the beginning if configuration changes or if starting fresh
-    if (currentRoleIndex >= allRoles.length) {
+    // Reset view back to safety boundaries if configuration changes unexpectedly
+    if (currentRoleIndex > allRoles.length) {
         currentRoleIndex = 0;
     }
 
@@ -44,7 +44,7 @@ onValue(ref(db), (snapshot) => {
 
 // --- 3. RENDERING ENGINE (ONE ROLE AT A TIME) ---
 function renderCurrentRole() {
-    // If the election is closed, let the overlay do the blocking
+    // If the election is closed, let the overlay handle the blocking screens
     if (electionStatus === "closed") return;
 
     if (allRoles.length === 0) {
@@ -61,8 +61,13 @@ function renderCurrentRole() {
         ballotPaper.innerHTML = `
             <div style="text-align:center; padding: 40px; color: #2e7d32; background: #ffffff; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
                 <span style="font-size: 60px;">🎉</span>
-                <h2 style="color: #1a237e; margin-top: 15px;">All Votes Submitted!</h2>
-                <p style="color: #555; font-size: 16px;">Thank you for casting your official ballot. Your responses have been securely stored.</p>
+                <h2 style="color: #1a237e; margin-top: 15px; margin-bottom: 10px;">All Votes Submitted!</h2>
+                <p style="color: #555; font-size: 16px; margin-bottom: 30px;">Thank you for casting your official ballot. Your responses have been securely stored.</p>
+                
+                <!-- 🔄 NEW ACTION LOOP BUTTON -->
+                <button id="nextStudentBtn" style="background-color: #1a237e; color: #ffffff; border: none; padding: 14px 28px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: background 0.2s; box-shadow: 0 4px 6px rgba(26,35,126,0.15);">
+                    👤 Next Student Vote
+                </button>
             </div>`;
         return;
     }
@@ -92,8 +97,16 @@ function renderCurrentRole() {
     `;
 }
 
-// --- 4. SECURE VOTE WITH CONFIRMATION PROMPT ---
+// --- 4. CLICK CAPTURE FOR VOTES AND RESET LOOPS ---
 ballotPaper.addEventListener("click", async (e) => {
+    // Route Path A: Handle the Next Student Reset Loop
+    if (e.target && e.target.id === "nextStudentBtn") {
+        currentRoleIndex = 0;
+        renderCurrentRole();
+        return;
+    }
+
+    // Route Path B: Handle Balloting Selections
     const btn = e.target.closest(".vote-action-btn");
     if (!btn) return;
 
@@ -102,12 +115,11 @@ ballotPaper.addEventListener("click", async (e) => {
     const candidateName = btn.getAttribute("data-name");
     const currentRole = allRoles[currentRoleIndex];
 
-    // 🛑 VOTE CONFIRMATION STEP ADDED BACK
+    // Confirmation Prompt
     const confirmVote = confirm(`Are you sure you want to vote for "${candidateName}" as ${currentRole.title}?`);
-    
-    if (!confirmVote) return; // If student clicks Cancel, do nothing!
+    if (!confirmVote) return;
 
-    // Temporarily freeze button to prevent double-clicks
+    // Freeze interactive layers
     btn.style.pointerEvents = "none";
     btn.style.opacity = "0.5";
 
