@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>School Election Dashboard</title>
-    <link rel="stylesheet" href="admin.css?v=8">
+    <link rel="stylesheet" href="admin.css?v=10">
 </head>
 <body>
 
@@ -41,7 +41,18 @@
 
         <!-- ⚙️ TAB 2: SETUP (Management, Editing & Creation) -->
         <div id="settingsTab" class="tab-content hidden">
-            <!-- Part A: Add Form -->
+            
+            <!-- Part A: Master Election Toggle Status -->
+            <div class="card status-card">
+                <h2>🚦 Master Election Status Control</h2>
+                <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Turn the election ON to allow student voting, or OFF to pause/close the system instantly.</p>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0;">
+                    <span id="currentStatusText" style="font-size: 18px; font-weight: bold;">Checking status...</span>
+                    <button id="toggleStatusBtn" class="status-btn">Loading...</button>
+                </div>
+            </div>
+
+            <!-- Part B: Add Form -->
             <div class="card">
                 <h2>➕ Add New Election Position</h2>
                 <div class="form-container">
@@ -52,14 +63,14 @@
                 </div>
             </div>
 
-            <!-- Part B: Inline Editing & Deleting Section -->
+            <!-- Part C: Inline Editing & Deleting Section -->
             <div class="card">
                 <h2>⚙️ Manage Current Positions & Candidates</h2>
                 <p style="color: #666; font-size: 14px; margin-bottom: 15px;">You can update candidate names instantly by typing over them and clicking "Save Names".</p>
                 <div id="setupRoleList"></div>
             </div>
 
-            <!-- Part C: Danger Zone (Mass Reset) -->
+            <!-- Part D: Danger Zone (Mass Reset) -->
             <div class="card danger-card">
                 <h2>⚠️ Danger Zone</h2>
                 <p style="color: #666; font-size: 14px; margin-bottom: 15px;">This will reset the live vote counts back to 0 for every single position instantly. Your roles and candidate names will NOT be deleted.</p>
@@ -69,6 +80,6 @@
     </div>
 </div>
 
-<script type="module" src="admin.js?v=8"></script>
+<script type="module" src="admin.js?v=10"></script>
 </body>
 </html>
