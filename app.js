@@ -1,129 +1,92 @@
-import { db, ref, runTransaction, onValue } from "./firebase.js";
+import { db, ref, onValue } from "./firebase.js";
+import { runTransaction } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
 
-let roles = [];
-let currentRole = 0;
+// DOM Node Selectors
+const ballotPaper = document.getElementById("ballotPaper");
+const electionClosedOverlay = document.getElementById("electionClosedOverlay");
 
-const voteA = document.getElementById("candidateA");
-const voteB = document.getElementById("candidateB");
-const popup = document.getElementById("popup");
-const popupText = document.getElementById("popupText");
-const confirmBtn = document.getElementById("confirmVote");
-const cancelBtn = document.getElementById("cancelVote");
-const status = document.getElementById("status");
-const roleTitle = document.getElementById("roleTitle");
-const progress = document.getElementById("progress");
-
-let selectedCandidateKey = "";
-let selectedCandidateName = ""; 
-
-// 🔊 Preload the sound file explicitly
-const voteAudio = new Audio("vote-confirm.ogg");
-voteAudio.preload = "auto";
-
-// 1. Listen to database changes dynamically
-onValue(ref(db, "election_config"), (snapshot) => {
-    const data = snapshot.val();
+// --- 1. LIVE MONITOR: MASTER ELECTION CLOSE SWITCH ---
+onValue(ref(db, "settings/status"), (snapshot) => {
+    const status = snapshot.val() || "open";
     
-    if(!data) {
-        roleTitle.textContent = "❌ No active elections configured.";
-        progress.textContent = "Position 0 of 0";
-        voteA.style.display = "none";
-        voteB.style.display = "none";
-        return;
+    if (status === "closed") {
+        electionClosedOverlay.style.display = "block";
+    } else {
+        electionClosedOverlay.style.display = "none";
     }
-    
-    voteA.style.display = "block";
-    voteB.style.display = "block";
-
-    roles = Object.keys(data).map(key => ({
-        dbKey: key,
-        title: data[key].title,
-        candidateA: data[key].candidateA,
-        candidateB: data[key].candidateB
-    }));
-
-    setupVotingUI();
 });
 
-function setupVotingUI() {
-    if(roles.length > 0 && currentRole < roles.length) {
-        roleTitle.textContent = `🗳️ ${roles[currentRole].title} Election`;
-        progress.textContent = `Position ${currentRole + 1} of ${roles.length}`;
-        voteA.textContent = roles[currentRole].candidateA;
-        voteB.textContent = roles[currentRole].candidateB;
-        
-        voteA.disabled = false;
-        voteB.disabled = false;
-        status.textContent = "🟢 Ready";
-    }
-}
-
-voteA.onclick = () => openPopup("candidateA", roles[currentRole].candidateA);
-voteB.onclick = () => openPopup("candidateB", roles[currentRole].candidateB);
-
-function openPopup(key, name){
-    // 🔥 Unlock browser audio engine immediately on candidate selection click
-    voteAudio.play().then(() => {
-        voteAudio.pause();
-        voteAudio.currentTime = 0;
-    }).catch(e => console.log("Audio wake-up pending true user gesture:", e));
-
-    selectedCandidateKey = key;
-    selectedCandidateName = name;
-    popupText.textContent = `Are you sure you want to vote for ${name}?`;
-    popup.classList.remove("hidden");
-}
-
-cancelBtn.onclick = () => { popup.classList.add("hidden"); };
-
-confirmBtn.onclick = async () => {
-    popup.classList.add("hidden");
+// --- 2. LIVE CONFIGURATION RUNTIME SYNC ---
+onValue(ref(db), (snapshot) => {
+    const rootData = snapshot.val() || {};
+    const configData = rootData.election_config || {};
     
-    const voteRef = ref(db, `election/${roles[currentRole].dbKey}/${selectedCandidateKey}`);
+    ballotPaper.innerHTML = "";
+    const positionKeys = Object.keys(configData);
 
-    try{
-        // 🎵 Fire the audio IMMEDIATELY on confirm button press so it doesn't wait for database lag
-        voteAudio.currentTime = 0;
-        voteAudio.play().catch(e => console.error("Audio playback failed:", e));
+    if (positionKeys.length === 0) {
+        ballotPaper.innerHTML = `
+            <div style="text-align:center; padding: 40px; color: #777;">
+                <p style="font-size: 18px; font-weight: bold;">No open positions found.</p>
+                <p>The election ballot is currently empty.</p>
+            </div>`;
+        return;
+    }
 
-        await runTransaction(voteRef, (current) => {
-            return (current || 0) + 1;
+    // Render an interactive voting card for every configured role node found
+    positionKeys.forEach(key => {
+        const role = configData[key];
+        
+        ballotPaper.innerHTML += `
+        <div class="voter-card">
+            <h2>${role.title}</h2>
+            <div class="voter-options-grid">
+                <button class="vote-action-btn" data-key="${key}" data-candidate="candidateA">
+                    <span class="avatar">👤</span>
+                    <span class="cand-name">${role.candidateA}</span>
+                    <span class="action-tag">Tap to Vote</span>
+                </button>
+                <button class="vote-action-btn" data-key="${key}" data-candidate="candidateB">
+                    <span class="avatar">👤</span>
+                    <span class="cand-name">${role.candidateB}</span>
+                    <span class="action-tag">Tap to Vote</span>
+                </button>
+            </div>
+        </div>
+        `;
+    });
+});
+
+// --- 3. SECURE TRANSACTION TRANSACTION ENGINE ---
+ballotPaper.addEventListener("click", async (e) => {
+    // Traverse element tree up to safely locate the action button node
+    const btn = e.target.closest(".vote-action-btn");
+    if (!btn) return;
+
+    const roleKey = btn.getAttribute("data-key");
+    const choice = btn.getAttribute("data-candidate");
+    
+    // Prevent quick click spamming by disabling button context temporarily
+    btn.style.pointerEvents = "none";
+    btn.style.opacity = "0.5";
+
+    try {
+        const voteCounterRef = ref(db, `election/${roleKey}/${choice}`);
+        
+        // Atomic transaction guarantees database counts don't miscalculate during heavy user traffic
+        await runTransaction(voteCounterRef, (currentValue) => {
+            return (currentValue || 0) + 1;
         });
 
-        startCooldown();
-    }catch(error){
-        console.error(error);
-        alert("Vote could not be saved.");
-    }
-};
-
-function startCooldown(){
-    voteA.disabled = true;
-    voteB.disabled = true;
-    let seconds = 3;
-
-    status.textContent = `✅ Vote Recorded! Next vote in ${seconds}s`;
-
-    const timer = setInterval(() => {
-        seconds--;
-        if(seconds > 0){
-            status.textContent = `✅ Vote Recorded! Next vote in ${seconds}s`;
-        }else{
-            clearInterval(timer);
-            currentRole++;
-
-            if(currentRole < roles.length){
-                setupVotingUI();
-            }else{
-                document.querySelector(".container").innerHTML = `
-                    <h1>🎉 Voting Complete</h1>
-                    <p>All positions have been voted on successfully.</p>
-                    <button id="nextStudent" style="width:100%; padding:18px; font-size:22px; background:#1976d2; color:white; border:none; border-radius:12px; cursor:pointer;">
-                        Start Next Student
-                    </button>
-                `;
-                document.getElementById("nextStudent").onclick = () => { location.reload(); };
-            }
+        alert("🎉 Your vote has been recorded securely. Thank you!");
+    } catch (err) {
+        console.error("Secure transaction runtime failure:", err);
+        alert("An error occurred while submitting your ballot. Please try again.");
+    } finally {
+        // Restore interactive states
+        if (btn) {
+            btn.style.pointerEvents = "auto";
+            btn.style.opacity = "1";
         }
-    }, 1000);
-}
+    }
+});
