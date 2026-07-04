@@ -45,7 +45,7 @@ onValue(ref(db), (snapshot) => {
     renderCurrentRole();
 });
 
-// --- 3. RENDERING ENGINE (ONE ROLE AT A TIME WITH INLINE CONFIRMATION) ---
+// --- 3. RENDERING ENGINE (ONE ROLE AT A TIME WITH FIXED ACTION BAR) ---
 function renderCurrentRole() {
     if (electionStatus === "closed") return;
 
@@ -76,53 +76,53 @@ function renderCurrentRole() {
     const activeRole = allRoles[currentRoleIndex];
     const progressText = `<p style="text-align: center; color: #666; font-weight: bold; margin-bottom: 15px;">Position ${currentRoleIndex + 1} of ${allRoles.length}</p>`;
 
-    // Determine the layout states based on whether a candidate has been pressed
+    // Determine selection states
     const isASelected = selectedChoice === "candidateA";
     const isBSelected = selectedChoice === "candidateB";
     const hasSelection = selectedChoice !== null;
+    
+    // Grab the actual text name of the candidate who was chosen
+    const selectedName = isASelected ? activeRole.candidateA : (isBSelected ? activeRole.candidateB : "");
 
-    // Build the Action HTML or Confirmation HTML inside the cards depending on the selection state
-    const actionTagA = isASelected 
-        ? `<div style="margin-top: 10px; display: flex; gap: 8px;">
-               <button class="confirm-vote-btn" data-candidate="candidateA" style="background-color: #28a745; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 13px;">Confirm</button>
-               <button class="cancel-vote-btn" style="background-color: #6c757d; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 13px;">Cancel</button>
+    // Render the beautiful bottom-docked verification drawer panel if a choice is picked
+    const confirmationBarHtml = hasSelection 
+        ? `<div style="margin-top: 25px; padding-top: 20px; border-top: 2px solid #f4f6f9; text-align: center; animation: fadeIn 0.2s ease-out;">
+               <p style="margin: 0 0 15px 0; font-size: 16px; color: #333;">Confirm your vote for <strong style="color: #1a237e;">${selectedName}</strong>?</p>
+               <div style="display: flex; justify-content: center; gap: 15px;">
+                   <button class="cancel-vote-btn" style="background-color: #e0e4ec; color: #4f5e7b; border: none; padding: 10px 24px; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 14px; transition: background 0.2s;">Cancel</button>
+                   <button class="confirm-vote-btn" data-candidate="${selectedChoice}" style="background-color: #28a745; color: white; border: none; padding: 10px 24px; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 14px; box-shadow: 0 4px 10px rgba(40,167,69,0.2); transition: background 0.2s;">Confirm Vote</button>
+               </div>
            </div>`
-        : `<span class="action-tag">Tap to Vote</span>`;
-
-    const actionTagB = isBSelected 
-        ? `<div style="margin-top: 10px; display: flex; gap: 8px;">
-               <button class="confirm-vote-btn" data-candidate="candidateB" style="background-color: #28a745; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 13px;">Confirm</button>
-               <button class="cancel-vote-btn" style="background-color: #6c757d; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 13px;">Cancel</button>
-           </div>`
-        : `<span class="action-tag">Tap to Vote</span>`;
+        : '';
 
     ballotPaper.innerHTML = progressText + `
     <div class="voter-card">
         <h2>${activeRole.title}</h2>
         <div class="voter-options-grid">
-            <button class="vote-action-btn ${isASelected ? 'selected-glow' : ''}" 
+            <button class="vote-action-btn" 
                     data-candidate="candidateA" 
-                    style="${hasSelection && !isASelected ? 'opacity: 0.4; transform: scale(0.98); pointer-events: none;' : ''} ${isASelected ? 'border-color: #1a237e; box-shadow: 0 4px 12px rgba(26,35,126,0.15); pointer-events: none;' : ''}">
+                    style="${hasSelection && !isASelected ? 'opacity: 0.3; transform: scale(0.97); pointer-events: none;' : ''} ${isASelected ? 'border-color: #1a237e; box-shadow: 0 6px 15px rgba(26,35,126,0.12);' : ''}">
                 <span class="avatar">👤</span>
                 <span class="cand-name">${activeRole.candidateA}</span>
-                ${actionTagA}
+                <span class="action-tag" style="${isASelected ? 'background-color: #1a237e; color: #fff;' : ''}">${isASelected ? 'Selected' : 'Tap to Vote'}</span>
             </button>
             
-            <button class="vote-action-btn ${isBSelected ? 'selected-glow' : ''}" 
+            <button class="vote-action-btn" 
                     data-candidate="candidateB" 
-                    style="${hasSelection && !isBSelected ? 'opacity: 0.4; transform: scale(0.98); pointer-events: none;' : ''} ${isBSelected ? 'border-color: #1a237e; box-shadow: 0 4px 12px rgba(26,35,126,0.15); pointer-events: none;' : ''}">
+                    style="${hasSelection && !isBSelected ? 'opacity: 0.3; transform: scale(0.97); pointer-events: none;' : ''} ${isBSelected ? 'border-color: #1a237e; box-shadow: 0 6px 15px rgba(26,35,126,0.12);' : ''}">
                 <span class="avatar">👤</span>
                 <span class="cand-name">${activeRole.candidateB}</span>
-                ${actionTagB}
+                <span class="action-tag" style="${isBSelected ? 'background-color: #1a237e; color: #fff;' : ''}">${isBSelected ? 'Selected' : 'Tap to Vote'}</span>
             </button>
         </div>
+        ${confirmationBarHtml}
     </div>
     `;
 }
 
 // --- 4. CLICK CAPTURE FOR SELECTION, CONFIRMATION, AND RESET LOOPS ---
 ballotPaper.addEventListener("click", async (e) => {
-    // 🔄 Handle Next Student Button
+    // 🔄 Handle Next Student Button Click
     if (e.target && e.target.id === "nextStudentBtn") {
         currentRoleIndex = 0;
         selectedChoice = null;
@@ -130,22 +130,19 @@ ballotPaper.addEventListener("click", async (e) => {
         return;
     }
 
-    // 🛑 Handle Inline Cancel Button Click
+    // 🛑 Handle Cancel Action Button Click
     if (e.target.classList.contains("cancel-vote-btn")) {
-        e.stopPropagation(); // Avoid triggering container buttons
         selectedChoice = null;
         renderCurrentRole();
         return;
     }
 
-    // ✅ Handle Inline Secure Confirm Button Click
+    // ✅ Handle Secure Save Confirm Button Click
     if (e.target.classList.contains("confirm-vote-btn")) {
-        e.stopPropagation();
-        
         const choice = e.target.getAttribute("data-candidate");
         const activeRole = allRoles[currentRoleIndex];
         
-        // Disable the confirmation block styling state during background writing
+        // Freeze interactions while pushing the transaction state outward
         e.target.disabled = true;
         e.target.textContent = "Saving...";
 
@@ -157,7 +154,7 @@ ballotPaper.addEventListener("click", async (e) => {
                 return (currentValue || 0) + 1;
             });
 
-            // Clean up selections and advance loop to next position
+            // Clean up tracking caches and cycle screen layout forward
             selectedChoice = null;
             currentRoleIndex++;
             renderCurrentRole();
@@ -171,13 +168,18 @@ ballotPaper.addEventListener("click", async (e) => {
         return;
     }
 
-    // 👤 Handle Base Card Tap to Initiate Confirmation Phase
+    // 👤 Handle Base Card Option Selection
     const btn = e.target.closest(".vote-action-btn");
     if (!btn) return;
 
-    // Only allow selecting if nothing is currently locked into confirmation mode
-    if (selectedChoice === null) {
-        selectedChoice = btn.getAttribute("data-candidate");
-        renderCurrentRole();
+    const clickedChoice = btn.getAttribute("data-candidate");
+    
+    // Toggle logic: tapping an already highlighted candidate cancels the selection
+    if (selectedChoice === clickedChoice) {
+        selectedChoice = null;
+    } else {
+        selectedChoice = clickedChoice;
     }
+    
+    renderCurrentRole();
 });
