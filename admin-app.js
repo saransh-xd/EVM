@@ -1,7 +1,6 @@
 import { db, ref, onValue } from "./firebase.js";
 import { set, remove, push, update } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
 
-// DOM Node Selectors
 const adminLoginOverlay = document.getElementById("adminLoginOverlay");
 const adminPasswordInput = document.getElementById("adminPasswordInput");
 const adminSubmitLoginBtn = document.getElementById("adminSubmitLoginBtn");
@@ -10,13 +9,11 @@ const adminDashboardContent = document.getElementById("adminDashboardContent");
 const liveStatusBadge = document.getElementById("liveStatusBadge");
 const masterStatusToggleBtn = document.getElementById("masterStatusToggleBtn");
 
-// Tab Switching Components
 const tabDashboardBtn = document.getElementById("tabDashboardBtn");
 const tabSetupBtn = document.getElementById("tabSetupBtn");
 const panelDashboard = document.getElementById("panelDashboard");
 const panelSetup = document.getElementById("panelSetup");
 
-// Management Setup Inputs
 const newRoleTitle = document.getElementById("newRoleTitle");
 const newRoleSequence = document.getElementById("newRoleSequence");
 const candidate1Name = document.getElementById("candidate1Name");
@@ -26,7 +23,6 @@ const candidate4Name = document.getElementById("candidate4Name");
 const createRoleBtn = document.getElementById("createRoleBtn");
 const adminLiveRolesContainer = document.getElementById("adminLiveRolesContainer");
 
-// Live Results Targets
 const liveDashboardChartsGrid = document.getElementById("liveDashboardChartsGrid");
 const globalVoteCastCounter = document.getElementById("globalVoteCastCounter");
 const downloadPdfBtn = document.getElementById("downloadPdfBtn");
@@ -34,7 +30,6 @@ const resetAllVotesBtn = document.getElementById("resetAllVotesBtn");
 
 let currentSystemStatus = "open";
 
-// --- 1. SECURE PASSCODE INTERCEPT ENGINE ---
 adminSubmitLoginBtn.addEventListener("click", evaluatePasscode);
 adminPasswordInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") evaluatePasscode();
@@ -46,13 +41,11 @@ function evaluatePasscode() {
         adminDashboardContent.style.display = "block";
         initializeDashboardSync();
     } else {
-        alert("❌ Invalid administrative credentials. Access denied.");
+        alert("❌ Invalid credentials.");
         adminPasswordInput.value = "";
-        adminPasswordInput.focus();
     }
 }
 
-// --- 2. MULTI-TAB INTERACTION CONTROLLER ---
 tabDashboardBtn.addEventListener("click", () => {
     tabDashboardBtn.classList.add("active");
     tabSetupBtn.classList.remove("active");
@@ -67,12 +60,10 @@ tabSetupBtn.addEventListener("click", () => {
     panelDashboard.style.display = "none";
 });
 
-// --- 3. FIREBASE UNIFIED SYNCHRONIZATION (DYNAMIC MULTI-CANDIDATE TRACKING) ---
 function initializeDashboardSync() {
     onValue(ref(db, "settings/status"), (snapshot) => {
         const status = snapshot.val() || "open";
         currentSystemStatus = status;
-
         if (status === "closed") {
             liveStatusBadge.textContent = "OFFLINE (CLOSED)";
             liveStatusBadge.style.color = "#dc3545";
@@ -94,7 +85,6 @@ function initializeDashboardSync() {
         adminLiveRolesContainer.innerHTML = "";
         liveDashboardChartsGrid.innerHTML = "";
 
-        // Transform into array for structural ordering operations
         let structuredRoles = Object.keys(configData).map(key => {
             return {
                 key: key,
@@ -103,26 +93,21 @@ function initializeDashboardSync() {
             };
         });
 
-        // Sort via custom designated sequence number
         structuredRoles.sort((a, b) => a.sequence - b.sequence);
-
         let absoluteGlobalTurnout = 0;
 
         if (structuredRoles.length === 0) {
-            const emptyMsg = `<p style="text-align: center; color: #777; padding: 20px; grid-column: 1/-1;">The ballot is empty. Add elements inside the Ballot Setup tab.</p>`;
+            const emptyMsg = `<p style="text-align: center; color: #777; padding: 20px; grid-column: 1/-1;">The ballot is empty.</p>`;
             adminLiveRolesContainer.innerHTML = emptyMsg;
             liveDashboardChartsGrid.innerHTML = emptyMsg;
             globalVoteCastCounter.textContent = "0";
             return;
         }
 
-        // Color theme options assigned symmetrically to multi-candidate charts
         const chartColors = ["#1a237e", "#28a745", "#fd7e14", "#6f42c1"];
 
         structuredRoles.forEach(role => {
             const key = role.key;
-            
-            // Build temporary arrays checking for up to 4 candidates dynamically
             let candidatesArray = [];
             if (role.candidate1) candidatesArray.push({ index: 1, name: role.candidate1 });
             if (role.candidate2) candidatesArray.push({ index: 2, name: role.candidate2 });
@@ -132,7 +117,6 @@ function initializeDashboardSync() {
             let totalVotes = 0;
             let roleVotesData = voteData[key] || {};
             
-            // Calculate total performance aggregates
             candidatesArray.forEach(cand => {
                 const tally = roleVotesData[`c${cand.index}`] || 0;
                 totalVotes += tally;
@@ -141,7 +125,6 @@ function initializeDashboardSync() {
 
             absoluteGlobalTurnout += totalVotes;
 
-            // Render Dynamic Performance Layout Card
             let chartRowsHtml = "";
             candidatesArray.forEach((cand, i) => {
                 const pct = totalVotes > 0 ? ((cand.tally / totalVotes) * 100).toFixed(0) : 0;
@@ -153,23 +136,22 @@ function initializeDashboardSync() {
             });
 
             liveDashboardChartsGrid.innerHTML += `
-                <div class="result-card">
+                <div class="result-card" style="background:#fafbfc; border:1px solid #eef0f5; padding:15px; border-radius:10px; page-break-inside:avoid;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3 style="color: #1a237e; margin-top: 0; font-size: 16px;">${role.title}</h3>
+                        <h3 style="color: #1a237e; margin: 0; font-size: 16px;">${role.title}</h3>
                         <span style="background: #e1e5f2; color: #1a237e; font-size: 11px; padding: 2px 8px; font-weight: bold; border-radius: 10px;">Order: ${role.sequence}</span>
                     </div>
-                    <p style="font-size: 12px; color: #666; margin-bottom: 12px;">Total Votes Placed: <strong>${totalVotes}</strong></p>
+                    <p style="font-size: 12px; color: #666; margin: 5px 0 12px 0;">Total Votes Placed: <strong>${totalVotes}</strong></p>
                     <div style="font-size: 14px; color: #333;">
                         ${chartRowsHtml}
                     </div>
                 </div>
             `;
 
-            // Build Symmetrical Multi-Input Config Row Block
             let inlineInputsHtml = "";
             candidatesArray.forEach(cand => {
                 inlineInputsHtml += `
-                    <input type="text" class="inline-edit-input" id="input${cand.index}-${key}" value="${cand.name}" placeholder="Candidate ${cand.index}">
+                    <input type="text" class="inline-edit-input" id="input${cand.index}-${key}" value="${cand.name}">
                 `;
             });
 
@@ -197,7 +179,6 @@ function initializeDashboardSync() {
     });
 }
 
-// --- 4. MASTER STATUS CONTROLLER ACTION ---
 masterStatusToggleBtn.addEventListener("click", async () => {
     const targetStatus = currentSystemStatus === "open" ? "closed" : "open";
     masterStatusToggleBtn.disabled = true;
@@ -210,7 +191,6 @@ masterStatusToggleBtn.addEventListener("click", async () => {
     }
 });
 
-// --- 5. NEW ROLE GENERATOR (WITH VARIABLE SLOTS SUPPORT) ---
 createRoleBtn.addEventListener("click", async () => {
     const title = newRoleTitle.value.trim();
     const c1 = candidate1Name.value.trim();
@@ -220,14 +200,13 @@ createRoleBtn.addEventListener("click", async () => {
     const sequenceValue = parseInt(newRoleSequence.value) || 1;
 
     if (!title || !c1 || !c2) {
-        alert("Please specify the role title and at least the first two mandatory candidates.");
+        alert("Please specify the title and at least two candidates.");
         return;
     }
 
     createRoleBtn.disabled = true;
     try {
         const newPositionRef = push(ref(db, "election_config"));
-        
         let configPayload = { title, candidate1: c1, candidate2: c2, sequence: sequenceValue };
         let votePayload = { c1: 0, c2: 0 };
 
@@ -243,7 +222,6 @@ createRoleBtn.addEventListener("click", async () => {
         candidate3Name.value = "";
         candidate4Name.value = "";
         newRoleSequence.value = "1";
-        alert("🎉 New dynamic ballot element posted successfully!");
     } catch (err) {
         console.error(err);
     } finally {
@@ -251,7 +229,6 @@ createRoleBtn.addEventListener("click", async () => {
     }
 });
 
-// --- 6. INTERACTION CAPTURE: INLINE EDITS & DELETIONS ---
 adminLiveRolesContainer.addEventListener("click", async (e) => {
     if (e.target.classList.contains("save-inline-btn")) {
         const targetKey = e.target.getAttribute("data-key");
@@ -262,40 +239,28 @@ adminLiveRolesContainer.addEventListener("click", async (e) => {
         const valSeq = parseInt(document.getElementById(`order-${targetKey}`).value) || 1;
 
         if (!val1 || !val2) {
-            alert("Primary candidates 1 and 2 cannot be left blank.");
+            alert("Primary candidates 1 and 2 cannot be blank.");
             return;
         }
 
         e.target.disabled = true;
-        e.target.textContent = "Saving...";
-
         try {
-            let updatePayload = {
-                candidate1: val1,
-                candidate2: val2,
-                sequence: valSeq
-            };
-
-            // Safely write optional slots into matrix map updates
+            let updatePayload = { candidate1: val1, candidate2: val2, sequence: valSeq };
             if (document.getElementById(`input3-${targetKey}`)) updatePayload.candidate3 = val3;
             if (document.getElementById(`input4-${targetKey}`)) updatePayload.candidate4 = val4;
 
             await update(ref(db, `election_config/${targetKey}`), updatePayload);
-            alert("Configuration settings modified successfully!");
+            alert("Saved successfully!");
         } catch (err) {
             console.error(err);
-            alert("Failed to modify configuration matrix.");
         } finally {
             e.target.disabled = false;
-            e.target.textContent = "💾 Save Changes";
         }
-        return;
     }
 
     if (e.target.classList.contains("delete-btn")) {
         const targetKey = e.target.getAttribute("data-key");
-        if (!confirm("Are you sure you want to completely erase this role? All associated votes will be lost.")) return;
-
+        if (!confirm("Are you sure?")) return;
         try {
             await remove(ref(db, `election_config/${targetKey}`));
             await remove(ref(db, `election/${targetKey}`));
@@ -305,14 +270,21 @@ adminLiveRolesContainer.addEventListener("click", async (e) => {
     }
 });
 
-// --- 7. PDF REPORT GENERATOR ---
+// --- 7. PDF REPORT GENERATOR (FIXED AND STABILIZED) ---
 downloadPdfBtn.addEventListener("click", () => {
     const reportElement = document.getElementById("pdfExportWrapper");
+    
+    // Explicit options ensuring container scaling renders multi-column structures correctly
     const outputOptions = {
-        margin:       15,
+        margin:       [10, 10, 10, 10],
         filename:     'Official_Election_Results_Report.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
+        image:        { type: 'jpeg', quality: 1.0 },
+        html2canvas:  { 
+            scale: 2, 
+            useCORS: true, 
+            logging: false, 
+            backgroundColor: '#ffffff' 
+        },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
@@ -331,40 +303,22 @@ downloadPdfBtn.addEventListener("click", () => {
     });
 });
 
-// --- 8. MASTER RESET ALL VOTES ---
 resetAllVotesBtn.addEventListener("click", async () => {
-    const firstConfirm = confirm("⚠️ WARNING: You are about to wipe out EVERY single vote recorded in the database. This action cannot be undone. Do you wish to proceed?");
-    if (!firstConfirm) return;
-
-    const secondConfirm = confirm("FINAL CONFIRMATION: Are you absolutely certain you want to reset all vote tallies to 0?");
-    if (!secondConfirm) return;
-
+    if (!confirm("Wipe all recorded votes?") || !confirm("Final warning! Reset?")) return;
     resetAllVotesBtn.disabled = true;
-    resetAllVotesBtn.textContent = "Clearing...";
-
     try {
         const editButtons = adminLiveRolesContainer.querySelectorAll(".save-inline-btn");
-        if (editButtons.length === 0) {
-            alert("No active roles found to reset.");
-            return;
-        }
-
         const clearPromises = Array.from(editButtons).map(async (btn) => {
             const key = btn.getAttribute("data-key");
-            
-            // Rebuild exact schema clearing dynamic keys to 0 safely
             let clearedVotes = { c1: 0, c2: 0 };
             if (document.getElementById(`input3-${key}`) && document.getElementById(`input3-${key}`).value.trim()) clearedVotes.c3 = 0;
             if (document.getElementById(`input4-${key}`) && document.getElementById(`input4-${key}`).value.trim()) clearedVotes.c4 = 0;
-
             return set(ref(db, `election/${key}`), clearedVotes);
         });
-
         await Promise.all(clearPromises);
-        alert("🎉 Success! All election data streams have been reset to 0.");
+        alert("Reset complete.");
     } catch (err) {
         console.error(err);
-        alert("An error occurred while resetting data streams.");
     } finally {
         resetAllVotesBtn.disabled = false;
         resetAllVotesBtn.textContent = "⚠️ Reset All Votes";
