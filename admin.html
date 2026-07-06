@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Election Administration Control Panel</title>
-    <link rel="stylesheet" href="style.css?v=11">
+    <link rel="stylesheet" href="style.css?v=12">
     <style>
         .admin-box { background: #fff; padding: 25px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid #eef0f5; }
         .admin-input { width: 100%; padding: 12px; margin: 10px 0 20px 0; border: 2px solid #e0e4ec; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
-        .inline-edit-input { padding: 8px 12px; border: 1px solid #ccd2e0; border-radius: 6px; font-size: 14px; width: 150px; box-sizing: border-box; }
+        .inline-edit-input { padding: 8px 12px; border: 1px solid #ccd2e0; border-radius: 6px; font-size: 14px; width: 130px; box-sizing: border-box; }
         .inline-order-input { padding: 8px 6px; border: 1px solid #ccd2e0; border-radius: 6px; font-size: 14px; width: 60px; text-align: center; box-sizing: border-box; }
         .admin-btn { background-color: #1a237e; color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; }
         .admin-btn:hover { background-color: #0d1442; }
@@ -19,18 +19,22 @@
         .role-list-item { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #f4f6f9; gap: 20px; }
         .role-list-item:last-child { border-bottom: none; }
         
-        /* UNIFIED BUTTON DIMENSIONS FOR PERFECT SYMMETRY */
+        /* SYMMETRY-ENFORCED INTERACTION BUTTONS */
         .save-inline-btn { background-color: #007bff; color: white; border: none; padding: 10px 16px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: 38px; box-sizing: border-box; white-space: nowrap; }
         .delete-btn { background-color: #dc3545; color: white; border: none; padding: 10px 16px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: 38px; box-sizing: border-box; white-space: nowrap; }
         
         .admin-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eef0f5; padding-bottom: 10px; }
         .tab-btn { background: #e0e4ec; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; color: #4f5e7b; }
         .tab-btn.active { background: #1a237e; color: white; }
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 15px; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-top: 15px; }
         .result-card { border: 1px solid #eef0f5; border-radius: 10px; padding: 15px; background: #fafbfc; }
-        .progress-bar-bg { background: #e0e4ec; height: 16px; border-radius: 8px; overflow: hidden; margin: 8px 0 15px 0; }
-        .progress-bar-fill { background: #1a237e; height: 100%; transition: width 0.4s ease; }
+        
+        .progress-bar-bg { background: #e0e4ec; height: 14px; border-radius: 8px; overflow: hidden; margin: 4px 0 12px 0; }
+        .progress-bar-fill { height: 100%; transition: width 0.4s ease; }
         .metrics-banner { background: #e8f5e9; border: 2px solid #a4deab; padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-top: 25px; }
+        
+        /* Symmetrical Input Grids */
+        .candidate-input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
@@ -106,7 +110,7 @@
                 <div style="display: flex; gap: 15px; align-items: center; margin-top: 10px;">
                     <div style="flex: 3;">
                         <label style="font-weight: bold; color: #444;">Election Position Title</label>
-                        <input type="text" id="newRoleTitle" class="admin-input" placeholder="e.g., School President" style="margin-bottom:0;">
+                        <input type="text" id="newRoleTitle" class="admin-input" placeholder="e.g., Head Boy" style="margin-bottom:0;">
                     </div>
                     <div style="flex: 1;">
                         <label style="font-weight: bold; color: #444;">Conduct Order</label>
@@ -114,17 +118,27 @@
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 15px; margin-top: 20px;">
-                    <div style="flex: 1;">
-                        <label style="font-weight: bold; color: #444;">Candidate A Name</label>
-                        <input type="text" id="candidateAName" class="admin-input" placeholder="First Candidate">
+                <!-- SYMMETRICAL COMPREHENSIVE CANDIDATE INPUT MATRIX -->
+                <div class="candidate-input-grid">
+                    <div>
+                        <label style="font-weight: bold; color: #444; font-size:14px;">Candidate 1 Name *</label>
+                        <input type="text" id="candidate1Name" class="admin-input" placeholder="First Candidate (Required)">
                     </div>
-                    <div style="flex: 1;">
-                        <label style="font-weight: bold; color: #444;">Candidate B Name</label>
-                        <input type="text" id="candidateBName" class="admin-input" placeholder="Second Candidate">
+                    <div>
+                        <label style="font-weight: bold; color: #444; font-size:14px;">Candidate 2 Name *</label>
+                        <input type="text" id="candidate2Name" class="admin-input" placeholder="Second Candidate (Required)">
+                    </div>
+                    <div>
+                        <label style="font-weight: bold; color: #444; font-size:14px;">Candidate 3 Name (Optional)</label>
+                        <input type="text" id="candidate3Name" class="admin-input" placeholder="Leave blank if none">
+                    </div>
+                    <div>
+                        <label style="font-weight: bold; color: #444; font-size:14px;">Candidate 4 Name (Optional)</label>
+                        <input type="text" id="candidate4Name" class="admin-input" placeholder="Leave blank if none">
                     </div>
                 </div>
-                <button id="createRoleBtn" class="admin-btn" style="background-color: #28a745;">Add Position to Ballot</button>
+                
+                <button id="createRoleBtn" class="admin-btn" style="background-color: #28a745; margin-top: 10px;">Add Position to Ballot</button>
             </div>
 
             <div class="admin-box">
@@ -144,6 +158,6 @@
     </footer>
 </div>
 
-<script type="module" src="admin-app.js?v=11"></script>
+<script type="module" src="admin-app.js?v=12"></script>
 </body>
 </html>
