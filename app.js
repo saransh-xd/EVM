@@ -9,10 +9,9 @@ let currentPositionIndex = 0;
 // --- VOICE HELPER ENGINE ---
 function speakText(text) {
     if ('speechSynthesis' in window) {
-        // Cancel any current speech instantly so it doesn't overlap
         window.speechSynthesis.cancel(); 
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 1.0; // Clear, normal pacing
+        utterance.rate = 1.0;
         utterance.pitch = 1.0;
         window.speechSynthesis.speak(utterance);
     }
@@ -32,11 +31,10 @@ onValue(ref(db), (snapshot) => {
                 <p style="color: #666;">The active polling gate has been securely closed by the administrator. Ballots can no longer be transmitted.</p>
             </div>
         `;
-        speakText("Voting has been terminated. The active polling gate has been securely closed.");
+        speakText("Voting has been terminated.");
         return;
     }
 
-    // Parse configuration map into sorted sequencing arrays
     let temporaryList = Object.keys(configData).map(key => {
         return {
             key: key,
@@ -45,10 +43,8 @@ onValue(ref(db), (snapshot) => {
         };
     });
 
-    // Sort matching administrative layout configurations (lowest sequence numbers first)
     temporaryList.sort((a, b) => a.sequence - b.sequence);
     
-    // Only re-render if the structural lineup length shifts to prevent losing a user's place mid-vote
     if (JSON.stringify(structuredRolesList.map(r => r.key)) !== JSON.stringify(temporaryList.map(r => r.key))) {
         structuredRolesList = temporaryList;
         if (structuredRolesList.length === 0) {
@@ -65,7 +61,6 @@ onValue(ref(db), (snapshot) => {
     }
 });
 
-// Render the active ballot position card cleanly
 function renderActiveBallotStep() {
     if (currentPositionIndex >= structuredRolesList.length) {
         ballotInterfaceWrapper.innerHTML = `
@@ -76,10 +71,7 @@ function renderActiveBallotStep() {
                 <button id="resetSessionBtn" class="vote-badge" style="border: none; padding: 12px 30px; cursor: pointer; font-size: 14px; background: #1a237e; color: white; border-radius: 8px;">Next Voter</button>
             </div>
         `;
-        
-        // 🔊 AUDIO CONFIRMATION: Voice out the final completion milestone
         speakText("Thank you! Your ballot has been cast successfully.");
-
         document.getElementById("resetSessionBtn").addEventListener("click", () => {
             currentPositionIndex = 0;
             renderActiveBallotStep();
@@ -89,14 +81,12 @@ function renderActiveBallotStep() {
 
     const currentRole = structuredRolesList[currentPositionIndex];
 
-    // Read up to 4 dynamic candidate keys safely
     let candidatesList = [];
     if (currentRole.candidate1) candidatesList.push({ id: "c1", name: currentRole.candidate1 });
     if (currentRole.candidate2) candidatesList.push({ id: "c2", name: currentRole.candidate2 });
     if (currentRole.candidate3) candidatesList.push({ id: "c3", name: currentRole.candidate3 });
     if (currentRole.candidate4) candidatesList.push({ id: "c4", name: currentRole.candidate4 });
 
-    // Generate balanced inner grid html layout blocks dynamically
     let squaresContentHtml = "";
     candidatesList.forEach(cand => {
         squaresContentHtml += `
@@ -120,38 +110,65 @@ function renderActiveBallotStep() {
         </div>
     `;
 
-    // 🔊 AUDIO PROMPT: Announce the active position role title aloud
-    speakText(`Voting for position: ${currentRole.title}. Please tap your choice.`);
+    speakText(`Voting for position: ${currentRole.title}.`);
 
-    // Bind event tap listeners to every candidate square box container dynamically
     const squaresElements = ballotInterfaceWrapper.querySelectorAll(".candidate-square");
     squaresElements.forEach(square => {
         square.addEventListener("click", () => {
             const chosenId = square.getAttribute("data-candidate-id");
             const chosenName = square.getAttribute("data-candidate-name");
             
-            // ✅ EXPLICIT VISUAL CONFIRMATION: Double check selection choice
-            if (confirm(`Are you sure you want to vote for "${chosenName}" for "${currentRole.title}"?`)) {
-                processVoteSubmission(currentRole.key, chosenId);
-            }
+            // 🎯 IN-UI SCREEN INTERMEDIATE CONFIRMATION
+            renderUIConfirmationScreen(currentRole, chosenId, chosenName);
         });
     });
 }
 
-// Write transactional increments securely to prevent multi-device race collision bugs
+// Renders visual internal UI card step asking the user to commit or change choice
+function renderUIConfirmationScreen(role, candidateId, candidateName) {
+    ballotInterfaceWrapper.innerHTML = `
+        <div style="text-align: center; margin-bottom: 15px; font-weight: bold; color: #4f5e7b; font-size: 14px;">
+            Confirming Selection
+        </div>
+        <div class="ballot-card" style="border: 2px solid #007bff; max-width: 550px;">
+            <span style="font-size: 50px;">🤔</span>
+            <h2 style="color: #1a237e; margin-top: 10px; font-weight:800;">Review Your Selection</h2>
+            <p style="color: #555; font-size:16px; margin-bottom:20px;">
+                You are about to choose <strong style="color:#007bff; font-size:18px;">${candidateName}</strong> for the position of <br><strong>${role.title}</strong>.
+            </p>
+            
+            <div style="display: flex; gap: 15px; justify-content: center; margin-top: 10px;">
+                <button id="cancelChoiceBtn" style="flex:1; background: #e0e4ec; color: #4f5e7b; border: none; padding: 14px; font-weight: bold; border-radius: 8px; cursor: pointer;">
+                    Go Back
+                </button>
+                <button id="confirmChoiceBtn" style="flex:1; background: #28a745; color: white; border: none; padding: 14px; font-weight: bold; border-radius: 8px; cursor: pointer;">
+                    Confirm & Submit
+                </button>
+            </div>
+        </div>
+    `;
+
+    speakText(`Confirm your vote for ${candidateName}.`);
+
+    document.getElementById("cancelChoiceBtn").addEventListener("click", () => {
+        renderActiveBallotStep(); // Returns smoothly back to options grid
+    });
+
+    document.getElementById("confirmChoiceBtn").addEventListener("click", () => {
+        processVoteSubmission(role.key, candidateId);
+    });
+}
+
 async function processVoteSubmission(roleKey, candidateFieldId) {
     const targetVoteRef = ref(db, `election/${roleKey}/${candidateFieldId}`);
-    
     try {
         await runTransaction(targetVoteRef, (currentValue) => {
             return (currentValue || 0) + 1;
         });
-        
-        // Advance smoothly to the next position step index layer
         currentPositionIndex++;
         renderActiveBallotStep();
     } catch (error) {
-        console.error("Transmission error:", error);
-        alert("System connection timeout. Please tap to re-submit your vote selection.");
+        console.error(error);
+        alert("Submission failed. Please try again.");
     }
 }
