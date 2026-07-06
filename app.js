@@ -6,6 +6,18 @@ const ballotInterfaceWrapper = document.getElementById("ballotInterfaceWrapper")
 let structuredRolesList = [];
 let currentPositionIndex = 0;
 
+// --- VOICE HELPER ENGINE ---
+function speakText(text) {
+    if ('speechSynthesis' in window) {
+        // Cancel any current speech instantly so it doesn't overlap
+        window.speechSynthesis.cancel(); 
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1.0; // Clear, normal pacing
+        utterance.pitch = 1.0;
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
 // Connect and read from synced Firebase schema instance
 onValue(ref(db), (snapshot) => {
     const rootData = snapshot.val() || {};
@@ -20,6 +32,7 @@ onValue(ref(db), (snapshot) => {
                 <p style="color: #666;">The active polling gate has been securely closed by the administrator. Ballots can no longer be transmitted.</p>
             </div>
         `;
+        speakText("Voting has been terminated. The active polling gate has been securely closed.");
         return;
     }
 
@@ -34,20 +47,22 @@ onValue(ref(db), (snapshot) => {
 
     // Sort matching administrative layout configurations (lowest sequence numbers first)
     temporaryList.sort((a, b) => a.sequence - b.sequence);
-    structuredRolesList = temporaryList;
-
-    if (structuredRolesList.length === 0) {
-        ballotInterfaceWrapper.innerHTML = `
-            <div class="ballot-card">
-                <span style="font-size: 60px;">📝</span>
-                <h2 style="color: #1a237e; margin-top: 15px;">Empty Ballot Matrix</h2>
-                <p style="color: #666;">There are currently no active positions configured for this election cycle.</p>
-            </div>
-        `;
-        return;
+    
+    // Only re-render if the structural lineup length shifts to prevent losing a user's place mid-vote
+    if (JSON.stringify(structuredRolesList.map(r => r.key)) !== JSON.stringify(temporaryList.map(r => r.key))) {
+        structuredRolesList = temporaryList;
+        if (structuredRolesList.length === 0) {
+            ballotInterfaceWrapper.innerHTML = `
+                <div class="ballot-card">
+                    <span style="font-size: 60px;">📝</span>
+                    <h2 style="color: #1a237e; margin-top: 15px;">Empty Ballot Matrix</h2>
+                    <p style="color: #666;">There are currently no active positions configured for this election cycle.</p>
+                </div>
+            `;
+        } else {
+            renderActiveBallotStep();
+        }
     }
-
-    renderActiveBallotStep();
 });
 
 // Render the active ballot position card cleanly
@@ -61,6 +76,10 @@ function renderActiveBallotStep() {
                 <button id="resetSessionBtn" class="vote-badge" style="border: none; padding: 12px 30px; cursor: pointer; font-size: 14px; background: #1a237e; color: white; border-radius: 8px;">Next Voter</button>
             </div>
         `;
+        
+        // 🔊 AUDIO CONFIRMATION: Voice out the final completion milestone
+        speakText("Thank you! Your ballot has been cast successfully.");
+
         document.getElementById("resetSessionBtn").addEventListener("click", () => {
             currentPositionIndex = 0;
             renderActiveBallotStep();
@@ -70,7 +89,7 @@ function renderActiveBallotStep() {
 
     const currentRole = structuredRolesList[currentPositionIndex];
 
-    // Read up to 4 dynamic candidate keys without hardcoding or risking undefined values
+    // Read up to 4 dynamic candidate keys safely
     let candidatesList = [];
     if (currentRole.candidate1) candidatesList.push({ id: "c1", name: currentRole.candidate1 });
     if (currentRole.candidate2) candidatesList.push({ id: "c2", name: currentRole.candidate2 });
@@ -81,7 +100,7 @@ function renderActiveBallotStep() {
     let squaresContentHtml = "";
     candidatesList.forEach(cand => {
         squaresContentHtml += `
-            <div class="candidate-square" data-candidate-id="${cand.id}">
+            <div class="candidate-square" data-candidate-id="${cand.id}" data-candidate-name="${cand.name}">
                 <div class="candidate-avatar">👤</div>
                 <div class="candidate-name">${cand.name}</div>
                 <div class="vote-badge">Tap to Vote</div>
@@ -101,12 +120,20 @@ function renderActiveBallotStep() {
         </div>
     `;
 
+    // 🔊 AUDIO PROMPT: Announce the active position role title aloud
+    speakText(`Voting for position: ${currentRole.title}. Please tap your choice.`);
+
     // Bind event tap listeners to every candidate square box container dynamically
     const squaresElements = ballotInterfaceWrapper.querySelectorAll(".candidate-square");
     squaresElements.forEach(square => {
         square.addEventListener("click", () => {
             const chosenId = square.getAttribute("data-candidate-id");
-            processVoteSubmission(currentRole.key, chosenId);
+            const chosenName = square.getAttribute("data-candidate-name");
+            
+            // ✅ EXPLICIT VISUAL CONFIRMATION: Double check selection choice
+            if (confirm(`Are you sure you want to vote for "${chosenName}" for "${currentRole.title}"?`)) {
+                processVoteSubmission(currentRole.key, chosenId);
+            }
         });
     });
 }
