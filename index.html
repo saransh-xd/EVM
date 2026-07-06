@@ -4,30 +4,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>School Electronic Voting System</title>
-    <link rel="stylesheet" href="style.css?v=11">
+    <link rel="stylesheet" href="style.css?v=12">
+    <style>
+        /* This layout ensures perfect symmetry automatically */
+        .ballot-card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #eef0f5;
+            text-align: center;
+        }
+        .candidates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+            justify-content: center;
+        }
+        .candidate-square {
+            background: #ffffff;
+            border: 2px solid #eef0f5;
+            border-radius: 12px;
+            padding: 25px 15px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 200px;
+            box-sizing: border-box;
+        }
+        .candidate-square:hover {
+            border-color: #1a237e;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(26, 35, 126, 0.08);
+        }
+        .candidate-avatar {
+            font-size: 50px;
+            margin-bottom: 10px;
+            user-select: none;
+        }
+        .candidate-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333333;
+            margin: 5px 0 15px 0;
+        }
+        .vote-badge {
+            background: #f0f2ff;
+            color: #1a237e;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    </style>
 </head>
 <body>
 
-<div id="electionClosedOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #ffffff; z-index: 9999; text-align: center; padding-top: 120px; font-family: 'Segoe UI', Arial, sans-serif;">
-    <div style="max-width: 500px; margin: 0 auto; padding: 20px;">
-        <span style="font-size: 80px;">🗳️</span>
-        <h1 style="color: #1a237e; margin-top: 20px; font-size: 32px; font-weight: 800;">Election is Currently Closed</h1>
-        <p style="color: #666666; font-size: 18px; line-height: 1.6; margin-bottom: 30px;">Voting has either concluded or has been temporarily paused by the election administrators. Thank you for your participation!</p>
-        <div style="display: inline-block; padding: 8px 16px; background-color: #f0f2f5; color: #1a237e; font-weight: bold; border-radius: 20px; font-size: 14px;">
-            🔄 Live System Monitor Active
-        </div>
-    </div>
-</div>
-
 <div class="voting-container">
     <header class="voting-header">
-        <h1>🗳️ School Election Ballot</h1>
+        <div style="font-size: 40px; margin-bottom: 10px;">🗳️</div>
+        <h1>School Election Ballot</h1>
         <p>Please select your preferred candidate for each position below. Cast your vote carefully!</p>
     </header>
 
-    <main id="ballotPaper">
-        <div id="loadingMessage" style="text-align: center; padding: 40px; color: #666;">
-            Loading official election ballot data...
+    <main id="ballotInterfaceWrapper">
+        <!-- Dynamic content layer maps here -->
+        <div style="text-align: center; padding: 40px; color: #666;">
+            <p>Initializing secure election connection pipelines...</p>
         </div>
     </main>
 
@@ -36,6 +87,6 @@
     </footer>
 </div>
 
-<script type="module" src="app.js?v=11"></script>
+<script type="module" src="app.js?v=12"></script>
 </body>
 </html>
